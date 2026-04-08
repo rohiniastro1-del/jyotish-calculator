@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Рохини Астро • Ведически Калкулатор</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v=static_token) }}">
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-grid">
+          <div class="hero-brand">
+            <div class="brand-logo-shell">
+              <img src="{{ url_for('static', filename='brand/rohini-astro-logo.png', v=static_token) }}" alt="Лого на Рохини Астро" class="brand-logo">
+            </div>
+            <div class="brand-copy">
+              <p class="eyebrow">Rohini Astro • Северен стил • Lahiri • Vimshottari</p>
+              <p class="brand-mark">Създадено от <strong>Рохини Астро</strong></p>
+              <h1>Ведически астрологичен калкулатор</h1>
+              <p class="hero-copy">
+                Практичен ведически калкулатор на български за рождена карта,
+                навамша, транзити и Vimshottari Dasha, създаден за <strong>Рохини Астро</strong>.
+              </p>
+            </div>
+          </div>
+          <div class="quality-bar">
+            <span>Истински възли</span>
+            <span>Lahiri</span>
+            <span>Mean tropical solar year</span>
+            <span>Рождена + транзитна карта</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel form-panel">
+          <div class="panel-heading">
+            <h2>Данни за раждане</h2>
+            <p>Можеш да избереш град или да редактираш координатите ръчно.</p>
+          </div>
+
+          <form method="post" class="birth-form">
+            <div class="field-grid two">
+              <label class="field">
+                <span>Дата на раждане</span>
+                <input type="date" name="birthDate" value="{{ form_values.birthDate }}" required>
+              </label>
+              <label class="field">
+                <span>Час на раждане</span>
+                <input type="time" name="birthTime" value="{{ form_values.birthTime }}" step="1" required>
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Град на раждане</span>
+              <input
+                type="text"
+                name="cityName"
+                id="cityName"
+                list="citySuggestions"
+                value="{{ form_values.cityName }}"
+                placeholder="Избери от списъка или изпиши място ръчно"
+                autocomplete="off"
+              >
+              <datalist id="citySuggestions">
+                {% for city in cities %}
+                  <option value="{{ city.name }}"></option>
+                {% endfor %}
+              </datalist>
+            </label>
+            <p class="helper-text helper-text--small">Ако градът липсва, изпиши го ръчно и попълни координатите и часовата зона по него.</p>
+
+            <div class="coord-card">
+              <div class="panel-heading compact">
+                <h3>Координати</h3>
+                <p>При избор на град полетата се попълват автоматично, а при нужда можеш да ги редактираш ръчно.</p>
+              </div>
+              <div class="coordinate-columns">
+                <div class="coordinate-panel">
+                  <p class="coordinate-panel__title">Ширина</p>
+                  <div class="coordinate-block">
+                    <label class="field">
+                      <span>Градуси</span>
+                      <input type="number" name="latitudeDegrees" id="latitudeDegrees" min="0" max="90" value="{{ form_values.latitudeDegrees }}" required>
+                    </label>
+                    <label class="field">
+                      <span>Минути</span>
+                      <input type="number" name="latitudeMinutes" id="latitudeMinutes" min="0" max="59" value="{{ form_values.latitudeMinutes }}" required>
+                    </label>
+                    <label class="field">
+                      <span>Посока</span>
+                      <select name="latitudeHemisphere" id="latitudeHemisphere">
+                        <option value="N" {% if form_values.latitudeHemisphere == 'N' %}selected{% endif %}>N</option>
+                        <option value="S" {% if form_values.latitudeHemisphere == 'S' %}selected{% endif %}>S</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+                <div class="coordinate-panel">
+                  <p class="coordinate-panel__title">Дължина</p>
+                  <div class="coordinate-block">
+                    <label class="field">
+                      <span>Градуси</span>
+                      <input type="number" name="longitudeDegrees" id="longitudeDegrees" min="0" max="180" value="{{ form_values.longitudeDegrees }}" required>
+                    </label>
+                    <label class="field">
+                      <span>Минути</span>
+                      <input type="number" name="longitudeMinutes" id="longitudeMinutes" min="0" max="59" value="{{ form_values.longitudeMinutes }}" required>
+                    </label>
+                    <label class="field">
+                      <span>Посока</span>
+                      <select name="longitudeHemisphere" id="longitudeHemisphere">
+                        <option value="E" {% if form_values.longitudeHemisphere == 'E' %}selected{% endif %}>E</option>
+                        <option value="W" {% if form_values.longitudeHemisphere == 'W' %}selected{% endif %}>W</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="coord-card">
+              <div class="panel-heading compact">
+                <h3>Часова зона</h3>
+                <p>Автоматично по координати и дата или ръчно задаване.</p>
+              </div>
+              <div class="field-grid two">
+                <label class="field">
+                  <span>Режим</span>
+                  <select name="timezoneMode" id="timezoneMode">
+                    <option value="auto" {% if form_values.timezoneMode == 'auto' %}selected{% endif %}>Автоматично</option>
+                    <option value="manual" {% if form_values.timezoneMode == 'manual' %}selected{% endif %}>Ръчно</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Раху / Кету</span>
+                  <select name="nodeMode">
+                    <option value="mean" {% if form_values.nodeMode == 'mean' %}selected{% endif %}>Среден възел</option>
+                    <option value="true" {% if form_values.nodeMode == 'true' %}selected{% endif %}>Истинен възел</option>
+                  </select>
+                </label>
+              </div>
+              <div class="field-grid three manual-tz-grid" id="manualTimezoneFields">
+                <label class="field">
+                  <span>Знак</span>
+                  <select name="manualTzSign">
+                    <option value="+" {% if form_values.manualTzSign == '+' %}selected{% endif %}>+</option>
+                    <option value="-" {% if form_values.manualTzSign == '-' %}selected{% endif %}>-</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Часове</span>
+                  <input type="number" name="manualTzHours" min="0" max="14" value="{{ form_values.manualTzHours }}">
+                </label>
+                <label class="field">
+                  <span>Минути</span>
+                  <input type="number" name="manualTzMinutes" min="0" max="59" value="{{ form_values.manualTzMinutes }}">
+                </label>
+              </div>
+            </div>
+
+            <details class="coord-card transit-card" {% if build_mode == 'transit' or (results and results.transit) or error %}open{% endif %}>
+              <summary class="transit-card__summary">
+                <div>
+                  <strong>Транзитна карта</strong>
+                  <span>Отваряш този блок само когато искаш отделен транзитен D-1 анализ.</span>
+                </div>
+              </summary>
+
+              <div class="transit-card__body">
+                <div class="field-grid two">
+                  <label class="field">
+                    <span>Транзитна дата</span>
+                    <input type="date" name="transitDate" value="{{ form_values.transitDate }}">
+                  </label>
+                  <label class="field">
+                    <span>Транзитен час</span>
+                    <input type="time" name="transitTime" value="{{ form_values.transitTime }}" step="1">
+                  </label>
+                </div>
+
+                <p class="helper-text helper-text--small">По подразбиране е зададен текущият момент, за да можеш да построиш транзит веднага без грешка.</p>
+
+                <label class="field">
+                  <span>Транзитен град</span>
+                  <input
+                    type="text"
+                    name="transitCityName"
+                    id="transitCityName"
+                    list="citySuggestions"
+                    value="{{ form_values.transitCityName }}"
+                    placeholder="Избери от списъка или изпиши място ръчно"
+                    autocomplete="off"
+                  >
+                </label>
+                <p class="helper-text helper-text--small">При чужд град извън списъка просто го изпиши ръчно. Транзитът ще се смята по въведените координати и часова зона.</p>
+
+                <div class="coordinate-columns">
+                  <div class="coordinate-panel">
+                    <p class="coordinate-panel__title">Транзитна ширина</p>
+                    <div class="coordinate-block">
+                      <label class="field">
+                        <span>Градуси</span>
+                        <input type="number" name="transitLatitudeDegrees" id="transitLatitudeDegrees" min="0" max="90" value="{{ form_values.transitLatitudeDegrees }}">
+                      </label>
+                      <label class="field">
+                        <span>Минути</span>
+                        <input type="number" name="transitLatitudeMinutes" id="transitLatitudeMinutes" min="0" max="59" value="{{ form_values.transitLatitudeMinutes }}">
+                      </label>
+                      <label class="field">
+                        <span>Посока</span>
+                        <select name="transitLatitudeHemisphere" id="transitLatitudeHemisphere">
+                          <option value="N" {% if form_values.transitLatitudeHemisphere == 'N' %}selected{% endif %}>N</option>
+                          <option value="S" {% if form_values.transitLatitudeHemisphere == 'S' %}selected{% endif %}>S</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="coordinate-panel">
+                    <p class="coordinate-panel__title">Транзитна дължина</p>
+                    <div class="coordinate-block">
+                      <label class="field">
+                        <span>Градуси</span>
+                        <input type="number" name="transitLongitudeDegrees" id="transitLongitudeDegrees" min="0" max="180" value="{{ form_values.transitLongitudeDegrees }}">
+                      </label>
+                      <label class="field">
+                        <span>Минути</span>
+                        <input type="number" name="transitLongitudeMinutes" id="transitLongitudeMinutes" min="0" max="59" value="{{ form_values.transitLongitudeMinutes }}">
+                      </label>
+                      <label class="field">
+                        <span>Посока</span>
+                        <select name="transitLongitudeHemisphere" id="transitLongitudeHemisphere">
+                          <option value="E" {% if form_values.transitLongitudeHemisphere == 'E' %}selected{% endif %}>E</option>
+                          <option value="W" {% if form_values.transitLongitudeHemisphere == 'W' %}selected{% endif %}>W</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-grid two">
+                  <label class="field">
+                    <span>Транзитна часова зона</span>
+                    <select name="transitTimezoneMode" id="transitTimezoneMode">
+                      <option value="auto" {% if form_values.transitTimezoneMode == 'auto' %}selected{% endif %}>Автоматично</option>
+                      <option value="manual" {% if form_values.transitTimezoneMode == 'manual' %}selected{% endif %}>Ръчно</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Раху / Кету за транзита</span>
+                    <select name="transitNodeMode">
+                      <option value="mean" {% if form_values.transitNodeMode == 'mean' %}selected{% endif %}>Среден възел</option>
+                      <option value="true" {% if form_values.transitNodeMode == 'true' %}selected{% endif %}>Истинен възел</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-grid three manual-tz-grid" id="transitManualTimezoneFields">
+                  <label class="field">
+                    <span>Знак</span>
+                    <select name="transitManualTzSign">
+                      <option value="+" {% if form_values.transitManualTzSign == '+' %}selected{% endif %}>+</option>
+                      <option value="-" {% if form_values.transitManualTzSign == '-' %}selected{% endif %}>-</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Часове</span>
+                    <input type="number" name="transitManualTzHours" min="0" max="14" value="{{ form_values.transitManualTzHours }}">
+                  </label>
+                  <label class="field">
+                    <span>Минути</span>
+                    <input type="number" name="transitManualTzMinutes" min="0" max="59" value="{{ form_values.transitManualTzMinutes }}">
+                  </label>
+                </div>
+              </div>
+            </details>
+
+            <div class="form-footer">
+              <p class="helper-text">Ayanamsha: Lahiri. При спорни исторически моменти около DST можеш да коригираш часовата зона ръчно.</p>
+              <div class="form-actions">
+                <button type="submit" name="buildMode" value="natal" class="{% if build_mode != 'transit' %}is-active{% endif %}">Построй рождена карта</button>
+                <button type="submit" name="buildMode" value="transit" class="button-secondary {% if build_mode == 'transit' %}is-active{% endif %}">Построй транзитите</button>
+              </div>
+              <p class="helper-text helper-text--small">Транзитната карта се изчислява само когато изрично натиснеш бутона за транзитите.</p>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel results-panel">
+          <div class="panel-heading">
+            <h2>Резултати</h2>
+            <p>Раши, Навамша и таблица с основните изчисления.</p>
+          </div>
+
+          {% if error %}
+            <div class="message error-message">{{ error }}</div>
+          {% elif results %}
+            <div class="summary-strip">
+              <div>
+                <span class="summary-label">Местно време</span>
+                <strong>{{ results.local_birth_label }}</strong>
+              </div>
+              <div>
+                <span class="summary-label">UTC</span>
+                <strong>{{ results.utc_birth_label }}</strong>
+              </div>
+              <div>
+                <span class="summary-label">Часова зона</span>
+                <strong>{{ results.timezone.name }} • {{ results.timezone.offset_label }}</strong>
+              </div>
+              <div>
+                <span class="summary-label">Айянамша</span>
+                <strong>{{ results.ayanamsha_label }}</strong>
+              </div>
+            </div>
+
+            <div class="meta-grid">
+              <article class="meta-card">
+                <h3>Асцендент</h3>
+                <p>Ас е в {{ results.lagna.sign_name }} ({{ results.lagna.sign_number }}) на {{ results.lagna.degree_dms }}.</p>
+                <p>Накшатра: {{ results.lagna.nakshatra }}, пада {{ results.lagna.pada }}.</p>
+                <p>Навамша знак: {{ results.lagna.nav_sign_name }}.</p>
+              </article>
+              <article class="meta-card">
+                <h3>Координати и зона</h3>
+                <p>{{ results.coordinates_label }}</p>
+                <p>Часова зона: {{ results.timezone.name }} • {{ results.timezone.offset_label }}</p>
+                <p>Раху/Кету: {{ results.node_mode_label }}.</p>
+              </article>
+            </div>
+
+            <div class="chart-grid">
+              <article class="chart-card">
+                <div class="chart-header">
+                  <h3>D-1 (Раши)</h3>
+                  <p>Ас е в горния ромб, знаците са подредени обратно на часовниковата стрелка.</p>
+                </div>
+                <div class="chart-tools">
+                  <button type="button" class="chart-rotate-toggle">Гледай от друг дом</button>
+                  <button type="button" class="chart-rotate-reset is-hidden">Върни Ас като първи</button>
+                </div>
+                <script type="application/json" class="chart-payload">{{ results.d1_chart_data | tojson }}</script>
+                <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-1 (Раши)" tabindex="0" role="button" aria-label="Увеличи D-1 (Раши)">{{ results.d1_chart_svg | safe }}</div>
+              </article>
+              <article class="chart-card">
+                <div class="chart-header">
+                  <h3>D-9 (Навамша)</h3>
+                  <p>Навамша е построена по класическата 9-та хармоника.</p>
+                </div>
+                <div class="chart-tools">
+                  <button type="button" class="chart-rotate-toggle">Гледай от друг дом</button>
+                  <button type="button" class="chart-rotate-reset is-hidden">Върни Ас като първи</button>
+                </div>
+                <script type="application/json" class="chart-payload">{{ results.d9_chart_data | tojson }}</script>
+                <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-9 (Навамша)" tabindex="0" role="button" aria-label="Увеличи D-9 (Навамша)">{{ results.d9_chart_svg | safe }}</div>
+              </article>
+            </div>
+
+            <div class="table-card">
+              <div class="panel-heading compact">
+                <h3>Таблица на Лагна и планетите</h3>
+                <p>Положения по знак, градуси, накшатра и дом в D-1.</p>
+              </div>
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Обект</th>
+                      <th>Знак</th>
+                      <th>Градуси</th>
+                      <th>Накшатра</th>
+                      <th>Дом</th>
+                      <th>D-9 знак</th>
+                      <th>R</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for row in results.table_rows %}
+                      <tr class="{% if row.label == 'Ас' %}planet-row planet-row--asc{% else %}planet-row{% endif %}">
+                        <td>{{ row.name }} ({{ row.label }})</td>
+                        <td>{{ row.sign_name }} ({{ row.sign_number }})</td>
+                        <td>{{ row.degree_dms }}</td>
+                        <td>{{ row.nakshatra }} • пада {{ row.pada }}</td>
+                        <td>{{ row.house }}</td>
+                        <td>{{ row.nav_sign_name }}</td>
+                        <td>{% if row.retrograde %}Да{% else %}-{% endif %}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+{% if results.transit %}
+              <div class="table-card">
+                <div class="panel-heading compact">
+                  <h3>Транзитни входни данни</h3>
+                  <p>Тук се вижда какъв точно локален час, UTC и часова зона са приложени за транзитната карта.</p>
+                </div>
+                <div class="table-scroll">
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th>Транзитна дата и час</th>
+                        <td>{{ results.transit.local_birth_label }}</td>
+                      </tr>
+                      <tr>
+                        <th>UTC</th>
+                        <td>{{ results.transit.utc_birth_label }}</td>
+                      </tr>
+                      <tr>
+                        <th>Място</th>
+                        <td>{{ results.transit.location_label }}</td>
+                      </tr>
+                      <tr>
+                        <th>Координати</th>
+                        <td>{{ results.transit.coordinates_label }}</td>
+                      </tr>
+                      <tr>
+                        <th>Часова зона</th>
+                        <td>{{ results.transit.timezone.name }} • {{ results.transit.timezone.offset_label }}</td>
+                      </tr>
+                      <tr>
+                        <th>Раху / Кету</th>
+                        <td>{{ results.transit.node_mode_label }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="chart-grid chart-grid--compare">
+                <article class="chart-card">
+                  <div class="chart-header">
+                    <h3>D-1 (Рождена Раши)</h3>
+                    <p>Оставена е тук до транзитната карта, за да можеш да ги сравняваш визуално сама.</p>
+                  </div>
+                  <div class="chart-tools">
+                    <button type="button" class="chart-rotate-toggle">Гледай от друг дом</button>
+                    <button type="button" class="chart-rotate-reset is-hidden">Върни Ас като първи</button>
+                  </div>
+                  <script type="application/json" class="chart-payload">{{ results.d1_chart_data | tojson }}</script>
+                  <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-1 (Рождена Раши)" tabindex="0" role="button" aria-label="Увеличи D-1 (Рождена Раши)">{{ results.d1_chart_svg | safe }}</div>
+                </article>
+                <article class="chart-card">
+                  <div class="chart-header">
+                    <h3>D-1 (Транзити)</h3>
+                    <p>Транзитната Раши карта е отделена за директно ръчно сравнение с рождената.</p>
+                  </div>
+                  <div class="chart-tools">
+                    <button type="button" class="chart-rotate-toggle">Гледай от друг дом</button>
+                    <button type="button" class="chart-rotate-reset is-hidden">Върни Ас като първи</button>
+                  </div>
+                  <script type="application/json" class="chart-payload">{{ results.transit.d1_chart_data | tojson }}</script>
+                  <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-1 (Транзити)" tabindex="0" role="button" aria-label="Увеличи D-1 (Транзити)">{{ results.transit.d1_chart_svg | safe }}</div>
+                </article>
+              </div>
+
+              <div class="table-card">
+                <div class="panel-heading compact">
+                  <h3>Таблица на транзитите</h3>
+                  <p>Положения по знак, градуси, накшатра и дом в транзитната D-1 карта, директно под нея.</p>
+                </div>
+                <div class="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Обект</th>
+                        <th>Знак</th>
+                        <th>Градуси</th>
+                        <th>Накшатра</th>
+                        <th>Дом</th>
+                        <th>R</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for row in results.transit.table_rows %}
+                        <tr class="{% if row.label == 'Ас' %}planet-row planet-row--asc{% else %}planet-row{% endif %}">
+                          <td>{{ row.name }} ({{ row.label }})</td>
+                          <td>{{ row.sign_name }} ({{ row.sign_number }})</td>
+                          <td>{{ row.degree_dms }}</td>
+                          <td>{{ row.nakshatra }} • пада {{ row.pada }}</td>
+                          <td>{{ row.house }}</td>
+                          <td>{% if row.retrograde %}Да{% else %}-{% endif %}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            {% endif %}
+
+            <div class="table-card">
+              <details class="accordion dasha-master">
+                <summary>
+                  <span>Vimshottari Dasha</span>
+                  <span>Разгъни дашите</span>
+                </summary>
+                <div class="accordion-body">
+                  <p class="dasha-panel-note">{{ results.dasha.calendar_note }}</p>
+                  <div class="accordion-stack">
+                    {% for md in results.dasha.md_periods %}
+                      <details class="accordion">
+                    <summary>
+                      <span>{{ md.label }}</span>
+                      <span>{{ md.start_label }} → {{ md.end_label }} • {{ md.duration_label }}</span>
+                    </summary>
+                    <div class="accordion-body">
+                      {% for ad in md.ad_periods %}
+                        <details class="accordion nested">
+                          <summary>
+                            <span>{{ ad.label }}</span>
+                            <span>{{ ad.start_label }} → {{ ad.end_label }} • {{ ad.duration_label }}</span>
+                          </summary>
+                          <div class="accordion-body">
+                            {% for pd in ad.pd_periods %}
+                              <div class="period-row {% if pd.active %}active-row{% endif %}">
+                                <strong>{{ pd.label }}</strong>
+                                <span>{{ pd.start_label }} → {{ pd.end_label }}</span>
+                                <span>{{ pd.duration_label }}</span>
+                              </div>
+                            {% endfor %}
+                          </div>
+                        </details>
+                      {% endfor %}
+                    </div>
+                      </details>
+                    {% endfor %}
+                  </div>
+                </div>
+              </details>
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <h3>Картата ще се появи тук</h3>
+              <p>Попълни рождените данни и натисни „Построй рождена карта“, а ако искаш и транзити, използвай отделния бутон за тях.</p>
+            </div>
+          {% endif %}
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div class="footer-badge">
+          <img src="{{ url_for('static', filename='brand/rohini-astro-logo.png', v=static_token) }}" alt="Рохини Астро" class="footer-logo">
+          <span class="footer-label">Рохини Астро</span>
+          <strong>Създадено от Рохини</strong>
+        </div>
+        <p>Ведически астрологичен калкулатор за сайта и бранда <strong>Рохини Астро</strong>.</p>
+      </footer>
+    </div>
+
+    <div class="chart-lightbox" id="chartLightbox" aria-hidden="true">
+      <div class="chart-lightbox__backdrop" data-close-lightbox></div>
+      <div class="chart-lightbox__dialog" role="dialog" aria-modal="true" aria-labelledby="chartLightboxTitle">
+        <button type="button" class="chart-lightbox__close" id="chartLightboxClose" aria-label="Затвори увеличената карта">×</button>
+        <div class="chart-lightbox__header">
+          <p class="chart-lightbox__eyebrow">Рохини Астро</p>
+          <h2 id="chartLightboxTitle">Увеличена карта</h2>
+        </div>
+        <div class="chart-lightbox__content" id="chartLightboxContent"></div>
+      </div>
+    </div>
+
+    <script>
+      window.CITY_DATA = {{ cities_json | safe }};
+    </script>
+    <script src="{{ url_for('static', filename='app.js', v=static_token) }}"></script>
+  </body>
+</html>
