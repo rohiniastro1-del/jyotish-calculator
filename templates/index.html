@@ -18,7 +18,7 @@
               <img src="{{ url_for('static', filename='brand/rohini-astro-logo.png', v=static_token) }}" alt="Лого на Рохини Астро" class="brand-logo">
             </div>
             <div class="brand-copy">
-              <p class="eyebrow">Rohini Astro • Северен стил • Lahiri • Vimshottari</p>
+              <p class="eyebrow">Rohini Astro • Северен и южен стил • Vimshottari</p>
               <p class="brand-mark">Създадено от <strong>Рохини Астро</strong></p>
               <h1>Ведически астрологичен калкулатор</h1>
               <p class="hero-copy">
@@ -28,9 +28,7 @@
             </div>
           </div>
           <div class="quality-bar">
-            <span>Истински възли</span>
             <span>Lahiri</span>
-            <span>Mean tropical solar year</span>
             <span>Рождена + транзитна карта</span>
           </div>
         </div>
@@ -40,7 +38,7 @@
         <section class="panel form-panel">
           <div class="panel-heading">
             <h2>Данни за раждане</h2>
-            <p>Можеш да избереш град или да редактираш координатите ръчно.</p>
+            <p>В календара за мобилни избери първо годината. Може да избереш град или да въведеш координатите ръчно.</p>
           </div>
 
           <form method="post" class="birth-form">
@@ -334,10 +332,10 @@
             </div>
 
             <div class="chart-grid">
-              <article class="chart-card">
+              <article class="chart-card" data-chart-style-group="natal">
                 <div class="chart-header">
                   <h3>D-1 (Раши)</h3>
-                  <p>Ас е в горния ромб, знаците са подредени обратно на часовниковата стрелка.</p>
+                  <p>Раши картата се показва в избрания северен или южен стил.</p>
                 </div>
                 <div class="chart-tools">
                   <button type="button" class="chart-rotate-toggle">Гледай от друг дом</button>
@@ -346,7 +344,7 @@
                 <script type="application/json" class="chart-payload">{{ results.d1_chart_data | tojson }}</script>
                 <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-1 (Раши)" tabindex="0" role="button" aria-label="Увеличи D-1 (Раши)">{{ results.d1_chart_svg | safe }}</div>
               </article>
-              <article class="chart-card">
+              <article class="chart-card" data-chart-style-group="natal">
                 <div class="chart-header">
                   <h3>D-9 (Навамша)</h3>
                   <p>Навамша е построена по класическата 9-та хармоника.</p>
@@ -358,6 +356,10 @@
                 <script type="application/json" class="chart-payload">{{ results.d9_chart_data | tojson }}</script>
                 <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-9 (Навамша)" tabindex="0" role="button" aria-label="Увеличи D-9 (Навамша)">{{ results.d9_chart_svg | safe }}</div>
               </article>
+            </div>
+            <div class="chart-style-switch" data-chart-style-group="natal" data-default-style="north" aria-label="Избор на стил за рождените карти">
+              <button type="button" class="chart-style-button is-active" data-chart-style="north">Северен стил</button>
+              <button type="button" class="chart-style-button" data-chart-style="south">Южен стил</button>
             </div>
 
             <div class="table-card">
@@ -434,7 +436,7 @@
               </div>
 
               <div class="chart-grid chart-grid--compare">
-                <article class="chart-card">
+                <article class="chart-card" data-chart-style-group="transit">
                   <div class="chart-header">
                     <h3>D-1 (Рождена Раши)</h3>
                     <p>Оставена е тук до транзитната карта, за да можеш да ги сравняваш визуално сама.</p>
@@ -446,7 +448,7 @@
                   <script type="application/json" class="chart-payload">{{ results.d1_chart_data | tojson }}</script>
                   <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-1 (Рождена Раши)" tabindex="0" role="button" aria-label="Увеличи D-1 (Рождена Раши)">{{ results.d1_chart_svg | safe }}</div>
                 </article>
-                <article class="chart-card">
+                <article class="chart-card" data-chart-style-group="transit">
                   <div class="chart-header">
                     <h3>D-1 (Транзити)</h3>
                     <p>Транзитната Раши карта е отделена за директно ръчно сравнение с рождената.</p>
@@ -458,6 +460,10 @@
                   <script type="application/json" class="chart-payload">{{ results.transit.d1_chart_data | tojson }}</script>
                   <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-1 (Транзити)" tabindex="0" role="button" aria-label="Увеличи D-1 (Транзити)">{{ results.transit.d1_chart_svg | safe }}</div>
                 </article>
+              </div>
+              <div class="chart-style-switch" data-chart-style-group="transit" data-default-style="north" aria-label="Избор на стил за транзитните карти">
+                <button type="button" class="chart-style-button is-active" data-chart-style="north">Северен стил</button>
+                <button type="button" class="chart-style-button" data-chart-style="south">Южен стил</button>
               </div>
 
               <div class="table-card">
@@ -542,6 +548,27 @@
           {% endif %}
         </section>
       </main>
+
+      <section class="panel legal-panel" aria-labelledby="legalInfoTitle">
+        <div class="panel-heading compact">
+          <h2 id="legalInfoTitle">Правна информация за тази версия</h2>
+          <p>Тази секция съдържа информация за изходния код, лиценза и отказа от гаранция.</p>
+        </div>
+        <div class="legal-grid">
+          <article class="legal-item">
+            <a href="https://github.com/rohiniastro1-del/jyotish-calculator" target="_blank" rel="noopener noreferrer">Изходен код</a>
+          </article>
+          <article class="legal-item">
+            <a href="https://github.com/rohiniastro1-del/jyotish-calculator/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Лиценз AGPL-3.0</a>
+          </article>
+          <article class="legal-item legal-item--wide">
+            <span class="summary-label">Без гаранция</span>
+          </article>
+          <article class="legal-item legal-item--wide">
+            <p>2026 Rohini Astro — първият български джйотиш калкулатор.</p>
+          </article>
+        </div>
+      </section>
 
       <footer class="site-footer">
         <div class="footer-badge">
