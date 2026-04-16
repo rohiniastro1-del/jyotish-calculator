@@ -26,6 +26,21 @@ const NORTH_CHART_LAYOUTS = {
   12: { sign: [423.0, 108.0], box: { x: 383.0, y: 16.0, width: 87.0, height: 74.0 } },
 };
 
+const SOUTH_SIGN_LAYOUTS = {
+  12: { box: { x: 14.9, y: 14.9, width: 135.5, height: 135.5 } },
+  1: { box: { x: 150.5, y: 14.9, width: 135.5, height: 135.5 } },
+  2: { box: { x: 286.0, y: 14.9, width: 135.5, height: 135.5 } },
+  3: { box: { x: 421.5, y: 14.9, width: 135.5, height: 135.5 } },
+  4: { box: { x: 421.5, y: 150.5, width: 135.5, height: 135.5 } },
+  5: { box: { x: 421.5, y: 286.0, width: 135.5, height: 135.5 } },
+  6: { box: { x: 421.5, y: 421.5, width: 135.5, height: 135.5 } },
+  7: { box: { x: 286.0, y: 421.5, width: 135.5, height: 135.5 } },
+  8: { box: { x: 150.5, y: 421.5, width: 135.5, height: 135.5 } },
+  9: { box: { x: 14.9, y: 421.5, width: 135.5, height: 135.5 } },
+  10: { box: { x: 14.9, y: 286.0, width: 135.5, height: 135.5 } },
+  11: { box: { x: 14.9, y: 150.5, width: 135.5, height: 135.5 } },
+};
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -89,6 +104,45 @@ function chartItemPositions(displayHouse, items) {
 
   groups.forEach((group, groupIndex) => {
     chartLineXPositions(box, group.length).forEach((xPos, itemIndex) => {
+      placed.push([group[itemIndex], xPos, yPositions[groupIndex]]);
+    });
+  });
+
+  return placed;
+}
+
+function southChartLineYPositions(box, lineCount) {
+  const centerY = box.y + box.height / 2;
+  let lineGap;
+  if (lineCount <= 2) {
+    lineGap = 24.0;
+  } else if (lineCount <= 4) {
+    lineGap = 22.0;
+  } else {
+    lineGap = 18.0;
+  }
+  const firstY = centerY - (((lineCount - 1) * lineGap) / 2);
+  return Array.from({ length: lineCount }, (_, index) => firstY + index * lineGap);
+}
+
+function southChartLineXPositions(box, itemCount) {
+  const centerX = box.x + box.width / 2;
+  if (itemCount === 1) {
+    return [centerX];
+  }
+
+  const spread = Math.min(26.0, box.width * 0.18);
+  return [centerX - spread, centerX + spread];
+}
+
+function southChartItemPositions(signNumber, items) {
+  const box = SOUTH_SIGN_LAYOUTS[signNumber].box;
+  const groups = groupChartItems(items);
+  const yPositions = southChartLineYPositions(box, groups.length);
+  const placed = [];
+
+  groups.forEach((group, groupIndex) => {
+    southChartLineXPositions(box, group.length).forEach((xPos, itemIndex) => {
       placed.push([group[itemIndex], xPos, yPositions[groupIndex]]);
     });
   });
@@ -191,6 +245,60 @@ function renderNorthChartSvg(chartPayload, firstHouse, chartKey) {
 </svg>`.trim();
 }
 
+function renderSouthChartSvg(chartPayload, chartKey) {
+  const title = escapeHtml(chartPayload.title);
+  const ariaTitle = escapeHtml(chartPayload.aria_title || chartPayload.title);
+  const chartId = `${chartKey}-south`;
+  const bgId = `southChartBg-${chartId}`;
+  const centerId = `southCenterGlow-${chartId}`;
+
+  const signItems = new Map();
+  chartPayload.houses.forEach((house) => {
+    signItems.set(Number(house.sign_number), house.items || []);
+  });
+
+  const itemParts = [];
+  Object.keys(SOUTH_SIGN_LAYOUTS)
+    .map((signNumber) => Number(signNumber))
+    .sort((left, right) => left - right)
+    .forEach((signNumber) => {
+      const items = signItems.get(signNumber) || [];
+      const lineCount = groupChartItems(items).length;
+      southChartItemPositions(signNumber, items).forEach(([itemText, xPos, yPos]) => {
+        itemParts.push(
+          `<text class="${chartTextClass(itemText, lineCount)}" x="${xPos.toFixed(1)}" y="${yPos.toFixed(1)}" text-anchor="middle" dominant-baseline="middle">${escapeHtml(itemText)}</text>`,
+        );
+      });
+    });
+
+  return `
+<svg class="south-chart-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 572 572" role="img" aria-label="${ariaTitle}">
+  <defs>
+    <linearGradient id="${bgId}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffef9" />
+      <stop offset="100%" stop-color="#f4eedb" />
+    </linearGradient>
+    <linearGradient id="${centerId}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ddd2a5" />
+      <stop offset="100%" stop-color="#c5b175" />
+    </linearGradient>
+  </defs>
+  <rect width="572" height="572" fill="url(#${bgId})" />
+  <rect x="14.9" y="14.9" width="542.2" height="542.2" fill="none" stroke="#4e7b4a" stroke-width="2.4" />
+  <line x1="150.5" y1="14.9" x2="150.5" y2="557.1" stroke="#4e7b4a" stroke-width="2.4" />
+  <line x1="421.5" y1="14.9" x2="421.5" y2="557.1" stroke="#4e7b4a" stroke-width="2.4" />
+  <line x1="286.0" y1="14.9" x2="286.0" y2="150.5" stroke="#4e7b4a" stroke-width="2.4" />
+  <line x1="286.0" y1="421.5" x2="286.0" y2="557.1" stroke="#4e7b4a" stroke-width="2.4" />
+  <line x1="14.9" y1="150.5" x2="557.1" y2="150.5" stroke="#4e7b4a" stroke-width="2.4" />
+  <line x1="14.9" y1="421.5" x2="557.1" y2="421.5" stroke="#4e7b4a" stroke-width="2.4" />
+  <line x1="14.9" y1="286.0" x2="150.5" y2="286.0" stroke="#4e7b4a" stroke-width="2.4" />
+  <line x1="421.5" y1="286.0" x2="557.1" y2="286.0" stroke="#4e7b4a" stroke-width="2.4" />
+  <rect x="251.0" y="251.0" width="70.0" height="70.0" rx="13" fill="url(#${centerId})" stroke="#4e7b4a" stroke-width="2.4" />
+  <text x="286" y="294" text-anchor="middle" class="chart-center-title">${title}</text>
+  ${itemParts.join("")}
+</svg>`.trim();
+}
+
 function bindCitySync(config) {
   const cityInput = document.getElementById(config.citySelectId);
   if (!cityInput) {
@@ -260,7 +368,7 @@ function bindChartLightbox() {
   };
 
   const open = (frame) => {
-    const chartSvg = frame.querySelector(".north-chart-svg");
+    const chartSvg = frame.querySelector(".north-chart-svg, .south-chart-svg");
     if (!chartSvg) {
       return;
     }
@@ -310,11 +418,21 @@ function bindChartRotation() {
     return;
   }
 
+  const groupStyles = {};
+  const switchers = document.querySelectorAll(".chart-style-switch");
+  switchers.forEach((switcher) => {
+    groupStyles[switcher.dataset.chartStyleGroup] = switcher.dataset.defaultStyle || "north";
+  });
+
+  const controllers = [];
+
   chartCards.forEach((card, index) => {
     const frame = card.querySelector(".chart-frame--rotatable");
     const payloadNode = card.querySelector(".chart-payload");
     const toggleButton = card.querySelector(".chart-rotate-toggle");
     const resetButton = card.querySelector(".chart-rotate-reset");
+    const tools = card.querySelector(".chart-tools");
+    const styleGroup = card.dataset.chartStyleGroup || `chart-group-${index + 1}`;
 
     if (!frame || !payloadNode || !toggleButton || !resetButton) {
       return;
@@ -332,6 +450,22 @@ function bindChartRotation() {
     let selectingHouse = false;
 
     const updateControls = () => {
+      const currentStyle = groupStyles[styleGroup] || "north";
+      const isNorthStyle = currentStyle === "north";
+
+      card.dataset.currentStyle = currentStyle;
+      if (tools) {
+        tools.classList.toggle("is-hidden", !isNorthStyle);
+      }
+
+      if (!isNorthStyle) {
+        selectingHouse = false;
+        toggleButton.classList.remove("is-active");
+        resetButton.classList.add("is-hidden");
+        frame.classList.remove("is-selecting-house");
+        return;
+      }
+
       toggleButton.textContent = selectingHouse ? "Избери дом..." : "Гледай от друг дом";
       toggleButton.classList.toggle("is-active", selectingHouse);
       resetButton.classList.toggle("is-hidden", currentFirstHouse === 1);
@@ -339,7 +473,13 @@ function bindChartRotation() {
     };
 
     const render = () => {
-      frame.innerHTML = renderNorthChartSvg(chartPayload, currentFirstHouse, chartKey);
+      const currentStyle = groupStyles[styleGroup] || "north";
+      if (currentStyle === "south") {
+        selectingHouse = false;
+        frame.innerHTML = renderSouthChartSvg(chartPayload, chartKey);
+      } else {
+        frame.innerHTML = renderNorthChartSvg(chartPayload, currentFirstHouse, chartKey);
+      }
       frame.dataset.currentFirstHouse = String(currentFirstHouse);
       updateControls();
     };
@@ -356,7 +496,7 @@ function bindChartRotation() {
     });
 
     frame.addEventListener("click", (event) => {
-      if (!selectingHouse) {
+      if ((groupStyles[styleGroup] || "north") !== "north" || !selectingHouse) {
         return;
       }
 
@@ -374,8 +514,36 @@ function bindChartRotation() {
       render();
     }, true);
 
-    render();
+    controllers.push({ group: styleGroup, render });
   });
+
+  switchers.forEach((switcher) => {
+    const groupName = switcher.dataset.chartStyleGroup;
+    const buttons = switcher.querySelectorAll(".chart-style-button");
+
+    const syncButtons = () => {
+      const currentStyle = groupStyles[groupName] || "north";
+      buttons.forEach((button) => {
+        const isActive = button.dataset.chartStyle === currentStyle;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        groupStyles[groupName] = button.dataset.chartStyle || "north";
+        syncButtons();
+        controllers
+          .filter((controller) => controller.group === groupName)
+          .forEach((controller) => controller.render());
+      });
+    });
+
+    syncButtons();
+  });
+
+  controllers.forEach((controller) => controller.render());
 }
 
 function bindTableScrollAssist() {
