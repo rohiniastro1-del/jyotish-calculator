@@ -44,6 +44,10 @@ def build_payload() -> dict[str, str]:
     return payload
 
 
+def rows_by_name(result: dict) -> dict[str, dict]:
+    return {row["name"]: row for row in result["table_rows"]}
+
+
 class TransitInputTests(unittest.TestCase):
     def test_foreign_transit_location_works_without_list_entry(self) -> None:
         foreign = build_payload()
@@ -181,6 +185,62 @@ class TransitInputTests(unittest.TestCase):
             result_noon["table_rows"][2]["degree_dms"],
             result_half_past["table_rows"][2]["degree_dms"],
         )
+
+    def test_true_nodes_can_be_direct_on_historical_date(self) -> None:
+        historical = build_payload()
+        historical.update(
+            {
+                "birthDate": "1908-12-10",
+                "birthTime": "16:14:28",
+                "cityName": "Gorna Oryahovitsa",
+                "latitudeDegrees": "43",
+                "latitudeMinutes": "8",
+                "latitudeHemisphere": "N",
+                "longitudeDegrees": "25",
+                "longitudeMinutes": "42",
+                "longitudeHemisphere": "E",
+                "timezoneMode": "manual",
+                "manualTzSign": "+",
+                "manualTzHours": "2",
+                "manualTzMinutes": "0",
+                "nodeMode": "true",
+            }
+        )
+
+        result = calculate_reading(historical)
+        node_rows = rows_by_name(result)
+
+        self.assertEqual(node_rows["Раху"]["retrograde"], node_rows["Кету"]["retrograde"])
+        self.assertFalse(node_rows["Раху"]["retrograde"])
+        self.assertFalse(node_rows["Кету"]["retrograde"])
+
+    def test_mean_nodes_stay_retrograde_on_same_historical_date(self) -> None:
+        historical = build_payload()
+        historical.update(
+            {
+                "birthDate": "1908-12-10",
+                "birthTime": "16:14:28",
+                "cityName": "Gorna Oryahovitsa",
+                "latitudeDegrees": "43",
+                "latitudeMinutes": "8",
+                "latitudeHemisphere": "N",
+                "longitudeDegrees": "25",
+                "longitudeMinutes": "42",
+                "longitudeHemisphere": "E",
+                "timezoneMode": "manual",
+                "manualTzSign": "+",
+                "manualTzHours": "2",
+                "manualTzMinutes": "0",
+                "nodeMode": "mean",
+            }
+        )
+
+        result = calculate_reading(historical)
+        node_rows = rows_by_name(result)
+
+        self.assertEqual(node_rows["Раху"]["retrograde"], node_rows["Кету"]["retrograde"])
+        self.assertTrue(node_rows["Раху"]["retrograde"])
+        self.assertTrue(node_rows["Кету"]["retrograde"])
 
 
 if __name__ == "__main__":
