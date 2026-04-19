@@ -25,11 +25,11 @@
                 Практичен ведически калкулатор на български за рождена карта,
                 навамша, транзити и Vimshottari Dasha, създаден за <strong>Рохини Астро</strong>.
               </p>
+              <div class="quality-bar">
+                <span>Lahiri</span>
+                <span>Рождена + транзитна карта</span>
+              </div>
             </div>
-          </div>
-          <div class="quality-bar">
-            <span>Lahiri</span>
-            <span>Рождена + транзитна карта</span>
           </div>
         </div>
       </header>
@@ -291,7 +291,7 @@
         <section class="panel results-panel">
           <div class="panel-heading">
             <h2>Резултати</h2>
-            <p>Раши, Навамша и таблица с основните изчисления.</p>
+            <p>Раши, избираема дробна карта и таблица с основните изчисления.</p>
           </div>
 
           {% if error %}
@@ -346,15 +346,23 @@
               </article>
               <article class="chart-card" data-chart-style-group="natal">
                 <div class="chart-header">
-                  <h3>D-9 (Навамша)</h3>
-                  <p>Навамша е построена по класическата 9-та хармоника.</p>
+                  <h3>Дробни карти</h3>
+                  <label class="divisional-chart-picker">
+                  <select class="divisional-chart-selector" aria-label="Избор на дробна карта">
+                    {% for option in results.divisional_chart_options %}
+                      <option value="{{ option.code }}" {% if option.code == results.selected_divisional_code %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                  </select>
+                  </label>
                 </div>
                 <div class="chart-tools">
                   <button type="button" class="chart-rotate-toggle">Гледай от друг дом</button>
                   <button type="button" class="chart-rotate-reset is-hidden">Върни Ас като първи</button>
                 </div>
-                <script type="application/json" class="chart-payload">{{ results.d9_chart_data | tojson }}</script>
-                <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-9 (Навамша)" tabindex="0" role="button" aria-label="Увеличи D-9 (Навамша)">{{ results.d9_chart_svg | safe }}</div>
+                <script type="application/json" class="chart-payload">{{ results.selected_divisional_chart.payload | tojson }}</script>
+                <script type="application/json" class="divisional-chart-registry">{{ results.divisional_charts | tojson }}</script>
+                <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="{{ results.selected_divisional_chart.card_title }}" tabindex="0" role="button" aria-label="Увеличи {{ results.selected_divisional_chart.card_title }}">{{ results.selected_divisional_chart_svg | safe }}</div>
+                <p class="helper-text helper-text--small divisional-card-note" {% if results.selected_divisional_chart.implemented %}hidden{% endif %}>{{ results.selected_divisional_chart.note }}</p>
               </article>
             </div>
             <div class="chart-style-switch" data-chart-style-group="natal" data-default-style="north" aria-label="Избор на стил за рождените карти">
