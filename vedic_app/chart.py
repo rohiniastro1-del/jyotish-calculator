@@ -117,8 +117,14 @@ def _sign_class(sign_number: object) -> str:
     return " ".join(class_names)
 
 
+def _center_title_class(title: object) -> str:
+    del title
+    return "chart-center-title"
+
+
 def render_north_chart(chart: dict[str, object]) -> str:
-    title = escape(str(chart["title"]))
+    raw_title = str(chart["title"])
+    title = escape(raw_title)
     subtitle = escape(str(chart["subtitle"]))
     aria_title = escape(str(chart.get("aria_title", chart["title"])))
     chart_id = "".join(
@@ -162,7 +168,7 @@ def render_north_chart(chart: dict[str, object]) -> str:
     </linearGradient>
     <mask id="{line_mask_id}">
       <rect width="572" height="531" fill="white" />
-      <rect x="254" y="234" width="64" height="64" rx="16" fill="black" />
+      <rect x="248" y="231" width="76" height="70" rx="18" fill="black" />
     </mask>
   </defs>
   <rect width="572" height="531" rx="18" fill="url(#{bg_id})" />
@@ -181,8 +187,8 @@ def render_north_chart(chart: dict[str, object]) -> str:
     <line x1="563" y1="521" x2="424.5" y2="393.25" stroke="#4e7b4a" stroke-width="2"/>
     <line x1="424.5" y1="393.25" x2="260" y2="240" stroke="#4e7b4a" stroke-width="2"/>
   </g>
-  <rect x="260" y="240" width="51" height="51" rx="10" fill="url(#{center_id})" stroke="#4e7b4a" stroke-width="2"/>
-  <text x="286" y="272" text-anchor="middle" class="chart-center-title">{title}</text>
+  <rect x="255" y="238" width="62" height="56" rx="12" fill="url(#{center_id})" stroke="#4e7b4a" stroke-width="2"/>
+  <text x="286" y="272" text-anchor="middle" class="{_center_title_class(raw_title)}">{title}</text>
   {"".join(sign_parts)}
   {"".join(item_parts)}
 </svg>

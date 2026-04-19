@@ -21,6 +21,11 @@ from vedic_app.data import (
     PLANET_ORDER,
     SIGN_NAMES_BG,
 )
+from vedic_app.divisional import (
+    build_divisional_chart_registry,
+    DEFAULT_DIVISIONAL_CHART_CODE,
+    DIVISIONAL_CHART_OPTIONS,
+)
 
 
 NAKSHATRA_ARCSECONDS = Decimal("48000")
@@ -420,6 +425,7 @@ def _build_chart_payload(
     asc_sign_index: int,
     points: list[dict[str, object]],
     house_key: str,
+    sign_key: str,
     aria_title: str | None = None,
 ) -> dict[str, object]:
     sign_sequence = build_sign_sequence(asc_sign_index + 1)
@@ -428,11 +434,16 @@ def _build_chart_payload(
         sign_number = sign_sequence[house_number]
         items = [point["chart_code"] for point in points if point[house_key] == house_number]
         houses.append({"house": house_number, "sign_number": sign_number, "items": items})
+    sign_items = {
+        sign_number: [point["chart_code"] for point in points if point[sign_key] == sign_number]
+        for sign_number in range(1, 13)
+    }
     return {
         "title": title,
         "subtitle": subtitle,
         "aria_title": aria_title or title,
         "houses": houses,
+        "sign_items": sign_items,
     }
 
 
@@ -581,11 +592,23 @@ def _calculate_chart(
         asc_details["sign_index"],
         points_by_order,
         "house",
+        "sign_number",
         aria_title=d1_aria_title,
     )
+    divisional_charts = None
+    selected_divisional_chart = None
+    selected_divisional_chart_svg = None
+    d9_chart = None
     d9_chart_svg = None
     if include_d9:
-        d9_chart = _build_chart_payload("D-9", "Навамша", asc_nav_sign, points_by_order, "nav_house")
+        divisional_charts = build_divisional_chart_registry(
+            build_chart_payload=_build_chart_payload,
+            points=points_by_order,
+            asc_nav_sign=asc_nav_sign,
+        )
+        selected_divisional_chart = divisional_charts[DEFAULT_DIVISIONAL_CHART_CODE]
+        selected_divisional_chart_svg = render_north_chart(selected_divisional_chart["payload"])
+        d9_chart = divisional_charts["D9"]["payload"]
         d9_chart_svg = render_north_chart(d9_chart)
 
     table_rows = []
@@ -628,6 +651,11 @@ def _calculate_chart(
         "d1_chart_svg": render_north_chart(d1_chart),
         "d9_chart_data": d9_chart if include_d9 else None,
         "d9_chart_svg": d9_chart_svg,
+        "divisional_chart_options": DIVISIONAL_CHART_OPTIONS if include_d9 else [],
+        "divisional_charts": divisional_charts if include_d9 else {},
+        "selected_divisional_code": DEFAULT_DIVISIONAL_CHART_CODE if include_d9 else None,
+        "selected_divisional_chart": selected_divisional_chart if include_d9 else None,
+        "selected_divisional_chart_svg": selected_divisional_chart_svg if include_d9 else None,
         "table_rows": table_rows,
         "raw_rows": rows_by_key,
         "asc_sign_index": asc_details["sign_index"],
@@ -666,6 +694,11 @@ def calculate_reading(form_data: dict[str, str], build_mode: str = "natal") -> d
         "d1_chart_svg": natal["d1_chart_svg"],
         "d9_chart_data": natal["d9_chart_data"],
         "d9_chart_svg": natal["d9_chart_svg"],
+        "divisional_chart_options": natal["divisional_chart_options"],
+        "divisional_charts": natal["divisional_charts"],
+        "selected_divisional_code": natal["selected_divisional_code"],
+        "selected_divisional_chart": natal["selected_divisional_chart"],
+        "selected_divisional_chart_svg": natal["selected_divisional_chart_svg"],
         "table_rows": natal["table_rows"],
         "dasha": dasha,
         "transit": transit,
