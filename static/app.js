@@ -167,6 +167,11 @@ function chartSignClass(signNumber) {
   return String(signNumber).length >= 2 ? "chart-sign-label chart-sign-label--double" : "chart-sign-label";
 }
 
+function chartCenterTitleClass(title) {
+  void title;
+  return "chart-center-title";
+}
+
 function rotateHouseToDisplayPosition(actualHouse, firstHouse) {
   return ((actualHouse - firstHouse + 12) % 12) + 1;
 }
@@ -218,7 +223,7 @@ function renderNorthChartSvg(chartPayload, firstHouse, chartKey) {
     </linearGradient>
     <mask id="${lineMaskId}">
       <rect width="572" height="531" fill="white" />
-      <rect x="254" y="234" width="64" height="64" rx="16" fill="black" />
+      <rect x="248" y="231" width="76" height="70" rx="18" fill="black" />
     </mask>
   </defs>
   <rect width="572" height="531" rx="18" fill="url(#${bgId})" />
@@ -237,8 +242,8 @@ function renderNorthChartSvg(chartPayload, firstHouse, chartKey) {
     <line x1="563" y1="521" x2="424.5" y2="393.25" stroke="#4e7b4a" stroke-width="2"/>
     <line x1="424.5" y1="393.25" x2="260" y2="240" stroke="#4e7b4a" stroke-width="2"/>
   </g>
-  <rect x="260" y="240" width="51" height="51" rx="10" fill="url(#${centerId})" stroke="#4e7b4a" stroke-width="2"/>
-  <text x="286" y="272" text-anchor="middle" class="chart-center-title">${title}</text>
+  <rect x="255" y="238" width="62" height="56" rx="12" fill="url(#${centerId})" stroke="#4e7b4a" stroke-width="2"/>
+  <text x="286" y="272" text-anchor="middle" class="${chartCenterTitleClass(chartPayload.title)}">${title}</text>
   ${signParts.join("")}
   ${itemParts.join("")}
   ${hitParts.join("")}
@@ -253,9 +258,16 @@ function renderSouthChartSvg(chartPayload, chartKey) {
   const centerId = `southCenterGlow-${chartId}`;
 
   const signItems = new Map();
-  chartPayload.houses.forEach((house) => {
-    signItems.set(Number(house.sign_number), house.items || []);
-  });
+  const directSignItems = chartPayload.sign_items || null;
+  if (directSignItems) {
+    Object.entries(directSignItems).forEach(([signNumber, items]) => {
+      signItems.set(Number(signNumber), items || []);
+    });
+  } else {
+    chartPayload.houses.forEach((house) => {
+      signItems.set(Number(house.sign_number), house.items || []);
+    });
+  }
 
   const itemParts = [];
   Object.keys(SOUTH_SIGN_LAYOUTS)
@@ -293,8 +305,8 @@ function renderSouthChartSvg(chartPayload, chartKey) {
   <line x1="14.9" y1="421.5" x2="557.1" y2="421.5" stroke="#4e7b4a" stroke-width="2.4" />
   <line x1="14.9" y1="286.0" x2="150.5" y2="286.0" stroke="#4e7b4a" stroke-width="2.4" />
   <line x1="421.5" y1="286.0" x2="557.1" y2="286.0" stroke="#4e7b4a" stroke-width="2.4" />
-  <rect x="251.0" y="251.0" width="70.0" height="70.0" rx="13" fill="url(#${centerId})" stroke="#4e7b4a" stroke-width="2.4" />
-  <text x="286" y="294" text-anchor="middle" class="chart-center-title">${title}</text>
+  <rect x="247.0" y="250.0" width="78.0" height="72.0" rx="14" fill="url(#${centerId})" stroke="#4e7b4a" stroke-width="2.4" />
+  <text x="286" y="294" text-anchor="middle" class="${chartCenterTitleClass(chartPayload.title)}">${title}</text>
   ${itemParts.join("")}
 </svg>`.trim();
 }
@@ -514,7 +526,19 @@ function bindChartRotation() {
       render();
     }, true);
 
-    controllers.push({ group: styleGroup, render });
+    const controller = {
+      group: styleGroup,
+      render,
+      setPayload(newPayload) {
+        chartPayload = newPayload;
+        currentFirstHouse = 1;
+        selectingHouse = false;
+        render();
+      },
+    };
+
+    card.__chartController = controller;
+    controllers.push(controller);
   });
 
   switchers.forEach((switcher) => {
@@ -544,6 +568,59 @@ function bindChartRotation() {
   });
 
   controllers.forEach((controller) => controller.render());
+}
+
+function bindDivisionalChartSelector() {
+  const selectors = document.querySelectorAll(".divisional-chart-selector");
+  if (!selectors.length) {
+    return;
+  }
+
+  selectors.forEach((selector) => {
+    const card = selector.closest(".chart-card");
+    const registryNode = card?.querySelector(".divisional-chart-registry");
+    const payloadNode = card?.querySelector(".chart-payload");
+    const frame = card?.querySelector(".chart-frame");
+    const note = card?.querySelector(".divisional-card-note");
+    const controller = card?.__chartController;
+
+    if (!card || !registryNode || !payloadNode || !frame || !controller) {
+      return;
+    }
+
+    let divisionalRegistry;
+    try {
+      divisionalRegistry = JSON.parse(registryNode.textContent);
+    } catch (_error) {
+      return;
+    }
+
+    let selectedDivisionalChart = selector.value || "D9";
+
+    const applySelection = () => {
+      const selected = divisionalRegistry[selectedDivisionalChart] || divisionalRegistry.D9;
+      if (!selected) {
+        return;
+      }
+
+      selector.value = selected.code || "D9";
+      payloadNode.textContent = JSON.stringify(selected.payload);
+      frame.dataset.chartTitle = selected.card_title;
+      frame.setAttribute("aria-label", `Увеличи ${selected.card_title}`);
+      if (note) {
+        note.hidden = !!selected.implemented;
+        note.textContent = selected.note || "";
+      }
+      controller.setPayload(selected.payload);
+    };
+
+    selector.addEventListener("change", () => {
+      selectedDivisionalChart = selector.value || "D9";
+      applySelection();
+    });
+
+    applySelection();
+  });
 }
 
 function bindTableScrollAssist() {
@@ -726,5 +803,6 @@ document.addEventListener("DOMContentLoaded", () => {
   bindTimezoneMode("transitTimezoneMode", "transitManualTimezoneFields");
   bindTableScrollAssist();
   bindChartRotation();
+  bindDivisionalChartSelector();
   bindChartLightbox();
 });

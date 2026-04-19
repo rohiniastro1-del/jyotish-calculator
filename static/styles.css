@@ -7,6 +7,7 @@
   --border: rgba(76, 97, 66, 0.22);
   --border-strong: rgba(76, 97, 66, 0.38);
   --ink: #1a241e;
+  --ink-strong: #1a241e;
   --muted: #5e6b62;
   --accent: #456941;
   --accent-deep: #2f4a33;
@@ -269,7 +270,7 @@ body::after {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 2px;
+  margin-top: 16px;
 }
 
 .quality-bar span {
@@ -721,6 +722,36 @@ button:hover::before {
 
 .chart-header {
   margin-bottom: 14px;
+}
+
+.divisional-chart-picker {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+.divisional-chart-picker span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.divisional-chart-selector {
+  min-height: 44px;
+  border-radius: 16px;
+  border: 1px solid rgba(162, 137, 74, 0.24);
+  background: rgba(255, 251, 238, 0.92);
+  color: var(--ink-strong);
+  font: inherit;
+  font-weight: 600;
+  padding: 0 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.divisional-card-note {
+  margin-top: 10px;
 }
 
 .chart-tools {
