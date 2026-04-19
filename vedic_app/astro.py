@@ -571,7 +571,7 @@ def _calculate_chart(
             "key": "Ketu",
             "name": PLANET_NAMES_BG["Ketu"],
             "label": PLANET_LABELS_BG["Ketu"],
-            "retrograde": True,
+            "retrograde": rahu_row["retrograde"],
             **ketu_details,
         }
         ketu_row["house"] = ((ketu_row["sign_index"] - asc_details["sign_index"]) % 12) + 1
