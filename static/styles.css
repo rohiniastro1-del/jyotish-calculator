@@ -1223,6 +1223,32 @@ tbody th {
   line-height: 1.55;
 }
 
+.jaimini-section {
+  display: grid;
+  gap: 10px;
+}
+
+.chara-dasha-grid {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(150px, 1.3fr) minmax(150px, 1.3fr) minmax(110px, auto);
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.chara-dasha-grid--header {
+  padding: 0 18px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chara-dasha-grid span {
+  min-width: 0;
+}
+
 .accordion {
   border: 1px solid rgba(76, 97, 66, 0.14);
   border-radius: 18px;
@@ -1744,6 +1770,12 @@ tbody th {
 
   .accordion-body {
     padding: 0 14px 14px;
+  }
+
+  .chara-dasha-grid,
+  .chara-dasha-grid--header {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 
   .period-row {

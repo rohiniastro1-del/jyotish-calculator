@@ -150,9 +150,13 @@ function southChartItemPositions(signNumber, items) {
   return placed;
 }
 
+function isArudhaLabel(item) {
+  return item === "Ал" || (item.startsWith("А") && /^\d+$/.test(item.slice(1)));
+}
+
 function chartTextClass(item, lineCount) {
   const classNames = ["chart-content"];
-  if (item === "Ас") {
+  if (item === "Ас" || isArudhaLabel(item)) {
     classNames.push("chart-content--asc");
   } else if (item.includes("(")) {
     classNames.push("chart-content--retro");
