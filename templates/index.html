@@ -506,12 +506,14 @@
                   </table>
                 </div>
               </div>
+
+              {% include "_jaimini_block.html" %}
             {% endif %}
 
             <div class="table-card">
               <details class="accordion dasha-master">
                 <summary>
-                  <span>Vimshottari Dasha</span>
+                  <span>Вимшоттари даша</span>
                   <span>Разгъни дашите</span>
                 </summary>
                 <div class="accordion-body">
@@ -548,6 +550,10 @@
                 </div>
               </details>
             </div>
+
+            {% if not results.transit %}
+              {% include "_jaimini_block.html" %}
+            {% endif %}
           {% else %}
             <div class="empty-state">
               <h3>Картата ще се появи тук</h3>

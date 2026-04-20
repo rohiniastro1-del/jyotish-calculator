@@ -1,0 +1,129 @@
+<div class="table-card">
+  <details class="accordion jaimini-master">
+    <summary>
+      <span>Джаймини</span>
+      <span>Разгъни картите, чара караките и арудхите</span>
+    </summary>
+    <div class="accordion-body">
+      <div class="chart-grid">
+        <article class="chart-card" data-chart-style-group="jaimini">
+          <div class="chart-header">
+            <h3>{{ results.jaimini.rashi_card_title }}</h3>
+            <p>{{ results.jaimini.rashi_description }}</p>
+          </div>
+          <div class="chart-tools">
+            <button type="button" class="chart-rotate-toggle">Гледай от друг дом</button>
+            <button type="button" class="chart-rotate-reset is-hidden">Върни Ас като първи</button>
+          </div>
+          <script type="application/json" class="chart-payload">{{ results.jaimini.rashi_chart_payload | tojson }}</script>
+          <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="{{ results.jaimini.rashi_card_title }}" tabindex="0" role="button" aria-label="Увеличи {{ results.jaimini.rashi_card_title }}">{{ results.jaimini.rashi_chart_svg | safe }}</div>
+        </article>
+
+        <article class="chart-card" data-chart-style-group="jaimini">
+          <div class="chart-header">
+            <h3>{{ results.jaimini.jaimini_card_title }}</h3>
+            <p>{{ results.jaimini.jaimini_description }}</p>
+          </div>
+          <div class="chart-tools">
+            <button type="button" class="chart-rotate-toggle">Гледай от друг дом</button>
+            <button type="button" class="chart-rotate-reset is-hidden">Върни Ас като първи</button>
+          </div>
+          <script type="application/json" class="chart-payload">{{ results.jaimini.jaimini_chart_payload | tojson }}</script>
+          <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="{{ results.jaimini.jaimini_card_title }}" tabindex="0" role="button" aria-label="Увеличи {{ results.jaimini.jaimini_card_title }}">{{ results.jaimini.jaimini_chart_svg | safe }}</div>
+        </article>
+      </div>
+
+      <div class="chart-style-switch" data-chart-style-group="jaimini" data-default-style="north" aria-label="Избор на стил за джаймини картите">
+        <button type="button" class="chart-style-button is-active" data-chart-style="north">Северен стил</button>
+        <button type="button" class="chart-style-button" data-chart-style="south">Южен стил</button>
+      </div>
+
+      <section class="jaimini-section">
+        <div class="panel-heading compact">
+          <h3>Таблица на чара караките</h3>
+          <p>Подредбата е определена по дължината на планетите в рамките на знака.</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Съкратено</th>
+                <th>Пълно име</th>
+                <th>Планета</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in results.jaimini.chara_karakas %}
+                <tr>
+                  <td>{{ row.code }}</td>
+                  <td>{{ row.name }}</td>
+                  <td>{{ row.planet_name }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="jaimini-section">
+        <details class="accordion jaimini-dasha-master">
+          <summary>
+            <span>Чара даша по Рао</span>
+            <span>Разгъни махадашите и антардашите</span>
+          </summary>
+          <div class="accordion-body">
+            <p class="dasha-panel-note">{{ results.jaimini.chara_dasha.calendar_note }}</p>
+
+            <div class="chara-dasha-grid chara-dasha-grid--header">
+              <span>Период</span>
+              <span>Начало</span>
+              <span>Край</span>
+              <span>Продължителност</span>
+            </div>
+
+            <div class="accordion-stack">
+              {% for md in results.jaimini.chara_dasha.md_periods %}
+                <details class="accordion nested">
+                  <summary>
+                    <div class="chara-dasha-grid">
+                      <span>{{ md.sign_name }}</span>
+                      <span>{{ md.start_label }}</span>
+                      <span>{{ md.end_label }}</span>
+                      <span>{{ md.duration_label }}</span>
+                    </div>
+                  </summary>
+                  <div class="accordion-body">
+                    <div class="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Махадаша</th>
+                            <th>Антардаша</th>
+                            <th>Начало</th>
+                            <th>Край</th>
+                            <th>Продължителност</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for ad in md.antardashas %}
+                            <tr>
+                              <td>{{ ad.mahadasha_sign_name }}</td>
+                              <td>{{ ad.sign_name }}</td>
+                              <td>{{ ad.start_label }}</td>
+                              <td>{{ ad.end_label }}</td>
+                              <td>{{ ad.duration_label }}</td>
+                            </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </details>
+              {% endfor %}
+            </div>
+          </div>
+        </details>
+      </section>
+    </div>
+  </details>
+</div>
