@@ -26,6 +26,7 @@ from vedic_app.divisional import (
     DEFAULT_DIVISIONAL_CHART_CODE,
     DIVISIONAL_CHART_OPTIONS,
 )
+from vedic_app.jaimini import build_jaimini_bundle
 
 
 NAKSHATRA_ARCSECONDS = Decimal("48000")
@@ -667,6 +668,16 @@ def _calculate_chart(
 def calculate_reading(form_data: dict[str, str], build_mode: str = "natal") -> dict[str, object]:
     natal = _calculate_chart(form_data, "natal", "Раши", include_d9=True)
 
+    jaimini = build_jaimini_bundle(
+        build_chart_payload=_build_chart_payload,
+        natal_chart_payload=natal["d1_chart_data"],
+        rows_by_key=natal["raw_rows"],
+        asc_sign_index=natal["asc_sign_index"],
+        birth_dt=natal["local_datetime"],
+    )
+    jaimini["rashi_chart_svg"] = render_north_chart(jaimini["rashi_chart_payload"])
+    jaimini["jaimini_chart_svg"] = render_north_chart(jaimini["jaimini_chart_payload"])
+
     dasha = build_vimshottari_dasha(natal["moon_longitude"], natal["local_datetime"])
 
     transit_date = _get_form_value(form_data, "transit", "date")
@@ -700,6 +711,7 @@ def calculate_reading(form_data: dict[str, str], build_mode: str = "natal") -> d
         "selected_divisional_chart": natal["selected_divisional_chart"],
         "selected_divisional_chart_svg": natal["selected_divisional_chart_svg"],
         "table_rows": natal["table_rows"],
+        "jaimini": jaimini,
         "dasha": dasha,
         "transit": transit,
     }

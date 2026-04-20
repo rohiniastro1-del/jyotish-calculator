@@ -99,9 +99,13 @@ def _line_positions(house_number: int, items: list[str]) -> list[tuple[str, floa
     return [(" ".join(group), center_x, y_pos) for group, y_pos in zip(groups, y_positions)]
 
 
+def _is_arudha_label(item: str) -> bool:
+    return item == "Ал" or (item.startswith("А") and item[1:].isdigit())
+
+
 def _text_class(item: str, line_count: int) -> str:
     class_names = ["chart-content"]
-    if item in {"Ас", "Àñ"}:
+    if item in {"Ас", "Àñ"} or _is_arudha_label(item):
         class_names.append("chart-content--asc")
     elif "(" in item:
         class_names.append("chart-content--retro")
