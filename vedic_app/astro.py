@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import hashlib
+import os
+import shutil
+import tempfile
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_FLOOR, ROUND_HALF_UP
 from pathlib import Path
@@ -100,12 +104,116 @@ def _discover_ephemeris_directory() -> Path | None:
     return None
 
 
+def _iter_ephemeris_files(directory: Path) -> list[Path]:
+    files: list[Path] = []
+    seen: set[Path] = set()
+    for pattern in EPHEMERIS_FILE_PATTERNS:
+        for candidate in directory.glob(pattern):
+            if candidate.is_file() and candidate not in seen:
+                seen.add(candidate)
+                files.append(candidate)
+    return files
+
+
+def _is_ascii_safe_path(path: Path) -> bool:
+    try:
+        str(path).encode("ascii")
+    except UnicodeEncodeError:
+        return False
+    return True
+
+
+def _ephemeris_cache_candidates() -> list[Path]:
+    candidates = [Path(tempfile.gettempdir())]
+    if os.name == "nt":
+        candidates.extend(
+            [
+                Path(os.environ.get("SystemRoot", r"C:\Windows")) / "Temp",
+                Path(r"C:\Temp"),
+            ]
+        )
+    unique_candidates: list[Path] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        text = str(candidate)
+        if text in seen:
+            continue
+        seen.add(text)
+        unique_candidates.append(candidate)
+    return unique_candidates
+
+
+def _prepare_ascii_ephemeris_mirror(directory: Path) -> Path | None:
+    ephemeris_files = _iter_ephemeris_files(directory)
+    if not ephemeris_files:
+        return None
+
+    digest = hashlib.sha1(str(directory).encode("utf-8")).hexdigest()[:12]
+    for root in _ephemeris_cache_candidates():
+        if not _is_ascii_safe_path(root):
+            continue
+        target = root / "rohini_swe_ephe" / digest
+        try:
+            target.mkdir(parents=True, exist_ok=True)
+            for source_file in ephemeris_files:
+                target_file = target / source_file.name
+                if (
+                    not target_file.exists()
+                    or target_file.stat().st_size != source_file.stat().st_size
+                    or int(target_file.stat().st_mtime) != int(source_file.stat().st_mtime)
+                ):
+                    shutil.copy2(source_file, target_file)
+        except OSError:
+            continue
+        return target
+    return None
+
+
+def _set_and_validate_ephemeris_path(directory: Path) -> bool:
+    swe.set_ephe_path(str(directory))
+    try:
+        _, retflags = swe.calc_ut(swe.julday(2000, 1, 1, 0.0), swe.SUN, swe.FLG_SWIEPH)
+    except Exception:
+        return False
+    return bool(retflags & swe.FLG_SWIEPH) and not bool(retflags & swe.FLG_MOSEPH)
+
+
+def _requested_swieph_backend_warning(body_key: str, requested_flags: int, retflags: int) -> str | None:
+    if not requested_flags & swe.FLG_SWIEPH:
+        return None
+    if retflags & swe.FLG_SWIEPH and not retflags & swe.FLG_MOSEPH:
+        return None
+
+    body_name = PLANET_NAMES_BG.get(body_key, body_key)
+    if retflags & swe.FLG_MOSEPH:
+        return (
+            f"Предупреждение: за {body_name} е поискан Swiss Ephemeris (FLG_SWIEPH), "
+            f"но swe.calc_ut() върна Moshier backend (FLG_MOSEPH, retflags={retflags}). "
+            "Това е fallback, а не реално SWIEPH изчисление. Проверете пътя до ephe файловете "
+            "и дали ASCII-safe копието е достъпно."
+        )
+
+    return (
+        f"Предупреждение: за {body_name} е поискан Swiss Ephemeris (FLG_SWIEPH), "
+        f"но swe.calc_ut() върна различен backend (retflags={retflags})."
+    )
+
+
 def _configure_ephemeris() -> str | None:
     directory = _discover_ephemeris_directory()
-    if directory is not None:
-        swe.set_ephe_path(str(directory))
+    if directory is None:
+        return None
+    if _set_and_validate_ephemeris_path(directory):
         return str(directory)
-    return None
+
+    # On Windows, Swiss Ephemeris can silently fall back to Moshier when the
+    # configured path contains non-ASCII characters, even if the .se1 files exist.
+    mirror_directory = _prepare_ascii_ephemeris_mirror(directory)
+    if mirror_directory is not None and _set_and_validate_ephemeris_path(mirror_directory):
+        return str(mirror_directory)
+
+    swe.set_ephe_path(str(directory))
+    return str(directory)
 
 
 EPHEMERIS_DIRECTORY = _configure_ephemeris()
@@ -403,13 +511,14 @@ def _ephemeris_source_summary(retflags: list[int]) -> dict[str, str]:
         return {"label": "Swiss Ephemeris", "detail": detail}
 
     if any(flag & swe.FLG_MOSEPH for flag in retflags):
-        return {
-            "label": "Moshier fallback",
-            "detail": (
-                "Липсват Swiss Ephemeris файлове (*.se1), затова изчисленията в момента ползват "
-                "Moshier fallback и могат да се разминават с JHora с няколко до десетки ъглови секунди."
-            ),
-        }
+        detail = (
+            "Поискан е Swiss Ephemeris (FLG_SWIEPH), но реалният backend е Moshier "
+            "(FLG_MOSEPH). Това е fallback: Swiss Ephemeris файловете не са достъпни през "
+            "активния път или backend-ът е отказал да ги използва."
+        )
+        if EPHEMERIS_DIRECTORY:
+            detail = f"{detail} Активен път: {EPHEMERIS_DIRECTORY}"
+        return {"label": "Moshier fallback", "detail": detail}
 
     if any(flag & swe.FLG_JPLEPH for flag in retflags):
         return {"label": "JPL ephemeris", "detail": "Използва се JPL ephemeris източник."}
@@ -509,6 +618,7 @@ def _calculate_chart(
         points: list[dict[str, object]] = []
         rows_by_key: dict[str, dict[str, object]] = {}
         ephemeris_flags: list[int] = []
+        ephemeris_warnings: list[str] = []
 
         asc_row = {
             "key": "Ascendant",
@@ -527,6 +637,9 @@ def _calculate_chart(
         for key in ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"]:
             values, retflags = swe.calc_ut(jd_ut, SWE_BODY_MAP[key], flags)
             ephemeris_flags.append(retflags)
+            backend_warning = _requested_swieph_backend_warning(key, flags, retflags)
+            if backend_warning is not None:
+                ephemeris_warnings.append(backend_warning)
             longitude_value = _normalize_degrees(values[0])
             speed = values[3]
             details = _zodiac_details(longitude_value)
@@ -547,6 +660,9 @@ def _calculate_chart(
 
         rahu_values, rahu_retflags = swe.calc_ut(jd_ut, node_id, flags)
         ephemeris_flags.append(rahu_retflags)
+        backend_warning = _requested_swieph_backend_warning("Rahu", flags, rahu_retflags)
+        if backend_warning is not None:
+            ephemeris_warnings.append(backend_warning)
         rahu_longitude = _normalize_degrees(rahu_values[0])
         rahu_speed = rahu_values[3]
         rahu_details = _zodiac_details(rahu_longitude)
@@ -640,6 +756,7 @@ def _calculate_chart(
         "ayanamsha_label": _full_degree_dms(ayanamsha),
         "node_mode_label": NODE_MODE_LABELS[node_mode],
         "ephemeris_source": ephemeris_source,
+        "ephemeris_warnings": ephemeris_warnings,
         "lagna": {
             "sign_name": asc_details["sign_name"],
             "sign_number": asc_details["sign_number"],
@@ -700,6 +817,7 @@ def calculate_reading(form_data: dict[str, str], build_mode: str = "natal") -> d
         "ayanamsha_label": natal["ayanamsha_label"],
         "node_mode_label": natal["node_mode_label"],
         "ephemeris_source": natal["ephemeris_source"],
+        "ephemeris_warnings": natal["ephemeris_warnings"],
         "lagna": natal["lagna"],
         "d1_chart_data": natal["d1_chart_data"],
         "d1_chart_svg": natal["d1_chart_svg"],
