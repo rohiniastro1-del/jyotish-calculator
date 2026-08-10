@@ -41,6 +41,16 @@ const SOUTH_SIGN_LAYOUTS = {
   11: { box: { x: 14.9, y: 150.5, width: 135.5, height: 135.5 } },
 };
 
+const OUTER_PLANET_CHART_LABELS = new Set(["Ур", "Не", "Пл"]);
+let showOuterPlanetsInCharts = false;
+
+function visibleChartItems(items) {
+  if (showOuterPlanetsInCharts) {
+    return items || [];
+  }
+  return (items || []).filter((item) => !OUTER_PLANET_CHART_LABELS.has(item));
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -156,7 +166,9 @@ function isArudhaLabel(item) {
 
 function chartTextClass(item, lineCount) {
   const classNames = ["chart-content"];
-  if (item === "Ас" || isArudhaLabel(item)) {
+  if (OUTER_PLANET_CHART_LABELS.has(item)) {
+    classNames.push("chart-content--outer");
+  } else if (item === "Ас" || isArudhaLabel(item)) {
     classNames.push("chart-content--asc");
   } else if (item.includes("(")) {
     classNames.push("chart-content--retro");
@@ -201,7 +213,7 @@ function renderNorthChartSvg(chartPayload, firstHouse, chartKey) {
       `<text class="${chartSignClass(house.sign_number)}" x="${signX.toFixed(1)}" y="${signY.toFixed(1)}" text-anchor="middle" dominant-baseline="middle">${house.sign_number}</text>`,
     );
 
-    const items = house.items || [];
+    const items = visibleChartItems(house.items);
     const lineCount = groupChartItems(items).length;
     chartItemPositions(displayHouse, items).forEach(([itemText, xPos, yPos]) => {
       itemParts.push(
@@ -265,11 +277,11 @@ function renderSouthChartSvg(chartPayload, chartKey) {
   const directSignItems = chartPayload.sign_items || null;
   if (directSignItems) {
     Object.entries(directSignItems).forEach(([signNumber, items]) => {
-      signItems.set(Number(signNumber), items || []);
+      signItems.set(Number(signNumber), visibleChartItems(items));
     });
   } else {
     chartPayload.houses.forEach((house) => {
-      signItems.set(Number(house.sign_number), house.items || []);
+      signItems.set(Number(house.sign_number), visibleChartItems(house.items));
     });
   }
 
@@ -435,6 +447,8 @@ function bindChartRotation() {
   }
 
   const groupStyles = {};
+  const outerPlanetsToggle = document.getElementById("showOuterPlanets");
+  showOuterPlanetsInCharts = !!outerPlanetsToggle?.checked;
   const switchers = document.querySelectorAll(".chart-style-switch");
   switchers.forEach((switcher) => {
     groupStyles[switcher.dataset.chartStyleGroup] = switcher.dataset.defaultStyle || "north";
@@ -572,6 +586,11 @@ function bindChartRotation() {
   });
 
   controllers.forEach((controller) => controller.render());
+
+  outerPlanetsToggle?.addEventListener("change", () => {
+    showOuterPlanetsInCharts = outerPlanetsToggle.checked;
+    controllers.forEach((controller) => controller.render());
+  });
 }
 
 function bindDivisionalChartSelector() {

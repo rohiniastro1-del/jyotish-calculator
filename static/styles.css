@@ -795,6 +795,24 @@ button:hover::before {
   box-shadow: 0 12px 24px rgba(117, 90, 32, 0.12);
 }
 
+.outer-planets-control {
+  width: calc(50% - 7px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 0;
+  color: var(--ink-strong);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.outer-planets-control input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent-deep);
+}
+
 .chart-style-button.is-active {
   background: linear-gradient(180deg, rgba(255, 249, 230, 0.98), rgba(242, 229, 186, 0.96));
   color: var(--accent-deep);
@@ -1097,6 +1115,21 @@ button:hover::before {
   fill: #1f1916;
 }
 
+.chart-content--outer {
+  font-size: 16.5px;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.planet-jyotish-name {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.82em;
+  font-style: normal;
+  font-weight: 400;
+}
+
 .table-scroll {
   overflow-x: auto;
   border-radius: 16px;
@@ -1215,6 +1248,122 @@ tbody th {
 
 .dasha-master > summary {
   font-size: 1rem;
+}
+
+.planet-strength-card {
+  margin-top: 14px;
+}
+
+.strength-master > summary {
+  font-size: 1rem;
+}
+
+.strength-body {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+
+.strength-section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.strength-section + .strength-section {
+  padding-top: 20px;
+  border-top: 1px solid rgba(76, 97, 66, 0.12);
+}
+
+.strength-table {
+  min-width: 850px;
+}
+
+.strength-table td:first-child {
+  font-weight: 800;
+  color: #1f1916;
+}
+
+.strength-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(218, 195, 141, 0.2);
+  white-space: nowrap;
+}
+
+.strength-status__exact {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.strength-status__degree {
+  color: currentColor;
+  font-weight: 700;
+}
+
+.strength-status__arrow {
+  font-size: 1.08em;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.strength-status__arrow--up {
+  color: #c62828;
+}
+
+.strength-status__arrow--down {
+  color: #171311;
+}
+
+.strength-status--exaltation,
+.strength-status--moolatrikona,
+.strength-status--great_friend {
+  color: #315a38;
+  background: rgba(102, 151, 94, 0.16);
+}
+
+.strength-status--debilitation,
+.strength-status--enemy,
+.strength-status--great_enemy {
+  color: #8b3041;
+  background: rgba(174, 77, 92, 0.12);
+}
+
+.ashtakavarga-table {
+  min-width: 1220px;
+  table-layout: fixed;
+}
+
+.ashtakavarga-table th,
+.ashtakavarga-table td {
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.ashtakavarga-table th:first-child,
+.ashtakavarga-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 112px;
+  text-align: left;
+  background: #f8f3e5;
+}
+
+.ashtakavarga-table thead th:first-child {
+  z-index: 3;
+}
+
+.ashtakavarga-sav-row td {
+  font-weight: 800;
+  color: var(--accent-deep);
+  background: rgba(218, 195, 141, 0.2);
 }
 
 .dasha-panel-note {
@@ -1676,7 +1825,8 @@ tbody th {
     margin-bottom: 10px;
   }
 
-  .chart-style-switch {
+  .chart-style-switch,
+  .outer-planets-control {
     width: 100%;
     margin-top: 10px;
   }
@@ -1772,6 +1922,24 @@ tbody th {
     padding: 0 14px 14px;
   }
 
+  .strength-body {
+    gap: 18px;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .strength-section + .strength-section {
+    padding-top: 16px;
+  }
+
+  .relationship-table {
+    min-width: 790px;
+  }
+
+  .ashtakavarga-table {
+    min-width: 1120px;
+  }
+
   .chara-dasha-grid,
   .chara-dasha-grid--header {
     grid-template-columns: 1fr;
@@ -1836,6 +2004,10 @@ tbody th {
 
   .chart-content--tight {
     font-size: 18.2px;
+  }
+
+  .chart-content--outer {
+    font-size: 17.2px;
   }
 
   .chart-sign-label {
@@ -1918,6 +2090,10 @@ tbody th {
 
   .chart-lightbox__content .chart-content--tight {
     font-size: 22px;
+  }
+
+  .chart-lightbox__content .chart-content--outer {
+    font-size: 21px;
   }
 
   .chart-lightbox__content .chart-sign-label {
