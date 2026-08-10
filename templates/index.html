@@ -41,7 +41,7 @@
             <p>В календара за мобилни избери първо годината. Може да избереш град или да въведеш координатите ръчно.</p>
           </div>
 
-          <form method="post" class="birth-form">
+          <form method="post" class="birth-form" id="birthForm">
             <div class="field-grid two">
               <label class="field">
                 <span>Дата на раждане</span>
@@ -369,6 +369,17 @@
               <button type="button" class="chart-style-button is-active" data-chart-style="north">Северен стил</button>
               <button type="button" class="chart-style-button" data-chart-style="south">Южен стил</button>
             </div>
+            <label class="outer-planets-control">
+              <input
+                type="checkbox"
+                id="showOuterPlanets"
+                name="showOuterPlanets"
+                value="on"
+                form="birthForm"
+                {% if form_values.showOuterPlanets == 'on' %}checked{% endif %}
+              >
+              <span>Показвай Уран, Нептун и Плутон в картите</span>
+            </label>
 
             <div class="table-card">
               <div class="panel-heading compact">
@@ -391,7 +402,10 @@
                   <tbody>
                     {% for row in results.table_rows %}
                       <tr class="{% if row.label == 'Ас' %}planet-row planet-row--asc{% else %}planet-row{% endif %}">
-                        <td>{{ row.name }} ({{ row.label }})</td>
+                        <td>
+                          <span>{{ row.name }} ({{ row.label }})</span>
+                          {% if row.jyotish_name %}<span class="planet-jyotish-name">/{{ row.jyotish_name }}/</span>{% endif %}
+                        </td>
                         <td>{{ row.sign_name }} ({{ row.sign_number }})</td>
                         <td>{{ row.degree_dms }}</td>
                         <td>{{ row.nakshatra }} • пада {{ row.pada }}</td>
@@ -403,6 +417,91 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            <div class="table-card planet-strength-card">
+              <details class="accordion strength-master">
+                <summary>
+                  <span>Сила на планетите</span>
+                  <span>Разгъни изчисленията</span>
+                </summary>
+                <div class="accordion-body strength-body">
+                  <section class="strength-section" aria-labelledby="planetRelationshipsTitle">
+                    <div class="panel-heading compact">
+                      <h3 id="planetRelationshipsTitle">Отношение на планетите в знака</h3>
+                      <p>Естественото и временното отношение се съчетават с особения статус в рождения D-1.</p>
+                    </div>
+                    <div class="table-scroll strength-table-scroll">
+                      <table class="strength-table relationship-table">
+                        <thead>
+                          <tr>
+                            <th>Планета</th>
+                            <th>Знак</th>
+                            <th>Диспозитор</th>
+                            <th>Естествено</th>
+                            <th>Временно</th>
+                            <th>Краен статус</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for row in results.strengths.relationships %}
+                            <tr>
+                              <td>{{ row.planet }}</td>
+                              <td>{{ row.sign }}</td>
+                              <td>{{ row.dispositor }}</td>
+                              <td>{% if row.status_key in ['exaltation', 'moolatrikona', 'own', 'debilitation'] %}–{% else %}{{ row.natural }}{% endif %}</td>
+                              <td>{% if row.status_key in ['exaltation', 'moolatrikona', 'own', 'debilitation'] %}–{% else %}{{ row.temporary }}{% endif %}</td>
+                              <td>
+                                <span class="strength-status strength-status--{{ row.status_key }}">
+                                  <span>{{ row.status }}</span>
+                                  {% if row.status_degree %}
+                                    <span class="strength-status__exact">
+                                      <span class="strength-status__degree">{{ row.status_degree }}</span>
+                                      <span class="strength-status__arrow strength-status__arrow--{{ row.status_direction }}" aria-hidden="true">{% if row.status_direction == 'up' %}↑{% else %}↓{% endif %}</span>
+                                    </span>
+                                  {% endif %}
+                                </span>
+                              </td>
+                            </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  <section class="strength-section" aria-labelledby="ashtakavargaTitle">
+                    <div class="panel-heading compact">
+                      <h3 id="ashtakavargaTitle">Ащакаварга</h3>
+                      <p>Бхинна Ащакаварга по знаци и общият Сарващакаварга ред за рождения D-1.</p>
+                    </div>
+                    <div class="table-scroll strength-table-scroll ashtakavarga-scroll">
+                      <table class="strength-table ashtakavarga-table">
+                        <thead>
+                          <tr>
+                            <th>Планета</th>
+                            {% for sign in results.strengths.ashtakavarga.signs %}<th>{{ sign }}</th>{% endfor %}
+                            <th>Общо</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for row in results.strengths.ashtakavarga.rows %}
+                            <tr>
+                              <td>{{ row.planet }}</td>
+                              {% for bindu in row.bindus %}<td>{{ bindu }}</td>{% endfor %}
+                              <td>{{ row.total }}</td>
+                            </tr>
+                          {% endfor %}
+                          <tr class="ashtakavarga-sav-row">
+                            <td>САВ</td>
+                            {% for bindu in results.strengths.ashtakavarga.sav %}<td>{{ bindu }}</td>{% endfor %}
+                            <td>{{ results.strengths.ashtakavarga.sav_total }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                </div>
+              </details>
             </div>
 
 {% if results.transit %}
@@ -494,7 +593,10 @@
                     <tbody>
                       {% for row in results.transit.table_rows %}
                         <tr class="{% if row.label == 'Ас' %}planet-row planet-row--asc{% else %}planet-row{% endif %}">
-                          <td>{{ row.name }} ({{ row.label }})</td>
+                          <td>
+                            <span>{{ row.name }} ({{ row.label }})</span>
+                            {% if row.jyotish_name %}<span class="planet-jyotish-name">/{{ row.jyotish_name }}/</span>{% endif %}
+                          </td>
                           <td>{{ row.sign_name }} ({{ row.sign_number }})</td>
                           <td>{{ row.degree_dms }}</td>
                           <td>{{ row.nakshatra }} • пада {{ row.pada }}</td>
