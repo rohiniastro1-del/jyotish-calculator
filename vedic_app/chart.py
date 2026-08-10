@@ -105,7 +105,9 @@ def _is_arudha_label(item: str) -> bool:
 
 def _text_class(item: str, line_count: int) -> str:
     class_names = ["chart-content"]
-    if item in {"Ас", "Àñ"} or _is_arudha_label(item):
+    if item in {"Ур", "Не", "Пл"}:
+        class_names.append("chart-content--outer")
+    elif item in {"Ас", "Àñ"} or _is_arudha_label(item):
         class_names.append("chart-content--asc")
     elif "(" in item:
         class_names.append("chart-content--retro")

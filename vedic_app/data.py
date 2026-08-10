@@ -86,6 +86,9 @@ PLANET_LABELS_BG = {
     "Saturn": "Са",
     "Rahu": "Ра",
     "Ketu": "Ке",
+    "Uranus": "Ур",
+    "Neptune": "Не",
+    "Pluto": "Пл",
 }
 
 PLANET_NAMES_BG = {
@@ -99,6 +102,15 @@ PLANET_NAMES_BG = {
     "Saturn": "Сатурн",
     "Rahu": "Раху",
     "Ketu": "Кету",
+    "Uranus": "Уран",
+    "Neptune": "Нептун",
+    "Pluto": "Плутон",
+}
+
+PLANET_JYOTISH_NAMES_BG = {
+    "Uranus": "Праджапати",
+    "Neptune": "Варуна",
+    "Pluto": "Яма",
 }
 
 PLANET_ORDER = [
@@ -112,6 +124,9 @@ PLANET_ORDER = [
     "Saturn",
     "Rahu",
     "Ketu",
+    "Uranus",
+    "Neptune",
+    "Pluto",
 ]
 
 DASHA_SEQUENCE = [

@@ -21,6 +21,7 @@ from vedic_app.data import (
     NODE_MODE_LABELS,
     navamsha_sign_index,
     PLANET_LABELS_BG,
+    PLANET_JYOTISH_NAMES_BG,
     PLANET_NAMES_BG,
     PLANET_ORDER,
     SIGN_NAMES_BG,
@@ -31,6 +32,7 @@ from vedic_app.divisional import (
     DIVISIONAL_CHART_OPTIONS,
 )
 from vedic_app.jaimini import build_jaimini_bundle
+from vedic_app.strengths import build_strength_bundle
 
 
 NAKSHATRA_ARCSECONDS = Decimal("48000")
@@ -43,7 +45,12 @@ SWE_BODY_MAP = {
     "Mars": swe.MARS,
     "Jupiter": swe.JUPITER,
     "Saturn": swe.SATURN,
+    "Uranus": swe.URANUS,
+    "Neptune": swe.NEPTUNE,
+    "Pluto": swe.PLUTO,
 }
+
+OUTER_PLANET_KEYS = ("Uranus", "Neptune", "Pluto")
 
 FIELD_NAMES = {
     "natal": {
@@ -231,6 +238,7 @@ def default_form_values() -> dict[str, str]:
             time_value=now_local.strftime("%H:%M:%S"),
         )
     )
+    values["showOuterPlanets"] = ""
     return values
 
 
@@ -500,6 +508,8 @@ def _traditional_sidereal_ascendant(jd_ut: float, latitude: float, longitude: fl
 
 def _planet_chart_code(key: str, retrograde: bool) -> str:
     label = PLANET_LABELS_BG[key]
+    if key in OUTER_PLANET_KEYS:
+        return label
     return f"({label})" if retrograde else label
 
 
@@ -634,7 +644,16 @@ def _calculate_chart(
         points.append(asc_row)
         rows_by_key["Ascendant"] = asc_row
 
-        for key in ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"]:
+        for key in [
+            "Sun",
+            "Moon",
+            "Mercury",
+            "Venus",
+            "Mars",
+            "Jupiter",
+            "Saturn",
+            *OUTER_PLANET_KEYS,
+        ]:
             values, retflags = swe.calc_ut(jd_ut, SWE_BODY_MAP[key], flags)
             ephemeris_flags.append(retflags)
             backend_warning = _requested_swieph_backend_warning(key, flags, retflags)
@@ -734,6 +753,7 @@ def _calculate_chart(
             {
                 "name": row["name"],
                 "label": row["label"],
+                "jyotish_name": PLANET_JYOTISH_NAMES_BG.get(row["key"]),
                 "sign_name": row["sign_name"],
                 "sign_number": row["sign_number"],
                 "degree_dms": row["degree_dms"],
@@ -785,6 +805,8 @@ def _calculate_chart(
 def calculate_reading(form_data: dict[str, str], build_mode: str = "natal") -> dict[str, object]:
     natal = _calculate_chart(form_data, "natal", "Раши", include_d9=True)
 
+    strengths = build_strength_bundle(rows=natal["raw_rows"])
+
     jaimini = build_jaimini_bundle(
         build_chart_payload=_build_chart_payload,
         natal_chart_payload=natal["d1_chart_data"],
@@ -829,6 +851,7 @@ def calculate_reading(form_data: dict[str, str], build_mode: str = "natal") -> d
         "selected_divisional_chart": natal["selected_divisional_chart"],
         "selected_divisional_chart_svg": natal["selected_divisional_chart_svg"],
         "table_rows": natal["table_rows"],
+        "strengths": strengths,
         "jaimini": jaimini,
         "dasha": dasha,
         "transit": transit,
