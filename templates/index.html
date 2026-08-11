@@ -38,19 +38,51 @@
         <section class="panel form-panel">
           <div class="panel-heading">
             <h2>Данни за раждане</h2>
-            <p>В календара за мобилни избери първо годината. Може да избереш град или да въведеш координатите ръчно.</p>
+            <p>Може да избереш град или да въведеш координатите ръчно.</p>
           </div>
 
-          <form method="post" class="birth-form" id="birthForm">
-            <div class="field-grid two">
-              <label class="field">
-                <span>Дата на раждане</span>
-                <input type="date" name="birthDate" value="{{ form_values.birthDate }}" required>
-              </label>
-              <label class="field">
-                <span>Час на раждане</span>
-                <input type="time" name="birthTime" value="{{ form_values.birthTime }}" step="1" required>
-              </label>
+          <form method="post" class="birth-form" id="birthForm" data-build-mode="{{ build_mode }}">
+            <div class="field-grid two date-time-grid">
+              <div class="field segmented-field">
+                <span class="segmented-field__title">Дата на раждане</span>
+                <div class="segmented-control segmented-control--date" data-segmented-date data-target="birthDate">
+                  <label class="segmented-part">
+                    <span>Ден</span>
+                    <input type="text" inputmode="numeric" autocomplete="bday-day" maxlength="2" data-part="day" value="{{ form_values.birthDate.split('-')[2] if form_values.birthDate else '' }}" placeholder="ДД" required>
+                  </label>
+                  <span class="segmented-separator" aria-hidden="true">·</span>
+                  <label class="segmented-part">
+                    <span>Месец</span>
+                    <input type="text" inputmode="numeric" autocomplete="bday-month" maxlength="2" data-part="month" value="{{ form_values.birthDate.split('-')[1] if form_values.birthDate else '' }}" placeholder="ММ" required>
+                  </label>
+                  <span class="segmented-separator" aria-hidden="true">·</span>
+                  <label class="segmented-part segmented-part--year">
+                    <span>Година</span>
+                    <input type="text" inputmode="numeric" autocomplete="bday-year" data-part="year" value="{{ form_values.birthDate.split('-')[0] if form_values.birthDate else '' }}" placeholder="ГГГГ" required>
+                  </label>
+                </div>
+                <input type="hidden" name="birthDate" id="birthDate" value="{{ form_values.birthDate }}">
+              </div>
+              <div class="field segmented-field">
+                <span class="segmented-field__title">Час на раждане</span>
+                <div class="segmented-control segmented-control--time" data-segmented-time data-target="birthTime">
+                  <label class="segmented-part">
+                    <span>Час</span>
+                    <input type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-part="hour" value="{{ form_values.birthTime.split(':')[0] if form_values.birthTime else '' }}" placeholder="ЧЧ" required>
+                  </label>
+                  <span class="segmented-separator" aria-hidden="true">:</span>
+                  <label class="segmented-part">
+                    <span>Минути</span>
+                    <input type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-part="minute" value="{{ form_values.birthTime.split(':')[1] if form_values.birthTime else '' }}" placeholder="ММ" required>
+                  </label>
+                  <span class="segmented-separator" aria-hidden="true">:</span>
+                  <label class="segmented-part">
+                    <span>Секунди</span>
+                    <input type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-part="second" value="{{ form_values.birthTime.split(':')[2] if form_values.birthTime else '' }}" placeholder="СС" required>
+                  </label>
+                </div>
+                <input type="hidden" name="birthTime" id="birthTime" value="{{ form_values.birthTime }}">
+              </div>
             </div>
 
             <label class="field">
@@ -161,7 +193,7 @@
               </div>
             </div>
 
-            <details class="coord-card transit-card" {% if build_mode == 'transit' or (results and results.transit) or error %}open{% endif %}>
+            <details class="coord-card transit-card" id="transitCard" {% if build_mode == 'transit' or (results and results.transit) or error %}open{% endif %}>
               <summary class="transit-card__summary">
                 <div>
                   <strong>Транзитна карта</strong>
@@ -170,15 +202,47 @@
               </summary>
 
               <div class="transit-card__body">
-                <div class="field-grid two">
-                  <label class="field">
-                    <span>Транзитна дата</span>
-                    <input type="date" name="transitDate" value="{{ form_values.transitDate }}">
-                  </label>
-                  <label class="field">
-                    <span>Транзитен час</span>
-                    <input type="time" name="transitTime" value="{{ form_values.transitTime }}" step="1">
-                  </label>
+                <div class="field-grid two date-time-grid">
+                  <div class="field segmented-field">
+                    <span class="segmented-field__title">Транзитна дата</span>
+                    <div class="segmented-control segmented-control--date" data-segmented-date data-target="transitDate">
+                      <label class="segmented-part">
+                        <span>Ден</span>
+                        <input type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-part="day" value="{{ form_values.transitDate.split('-')[2] if form_values.transitDate else '' }}" placeholder="ДД">
+                      </label>
+                      <span class="segmented-separator" aria-hidden="true">·</span>
+                      <label class="segmented-part">
+                        <span>Месец</span>
+                        <input type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-part="month" value="{{ form_values.transitDate.split('-')[1] if form_values.transitDate else '' }}" placeholder="ММ">
+                      </label>
+                      <span class="segmented-separator" aria-hidden="true">·</span>
+                      <label class="segmented-part segmented-part--year">
+                        <span>Година</span>
+                        <input type="text" inputmode="numeric" autocomplete="off" data-part="year" value="{{ form_values.transitDate.split('-')[0] if form_values.transitDate else '' }}" placeholder="ГГГГ">
+                      </label>
+                    </div>
+                    <input type="hidden" name="transitDate" id="transitDate" value="{{ form_values.transitDate }}">
+                  </div>
+                  <div class="field segmented-field">
+                    <span class="segmented-field__title">Транзитен час</span>
+                    <div class="segmented-control segmented-control--time" data-segmented-time data-target="transitTime">
+                      <label class="segmented-part">
+                        <span>Час</span>
+                        <input type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-part="hour" value="{{ form_values.transitTime.split(':')[0] if form_values.transitTime else '' }}" placeholder="ЧЧ">
+                      </label>
+                      <span class="segmented-separator" aria-hidden="true">:</span>
+                      <label class="segmented-part">
+                        <span>Минути</span>
+                        <input type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-part="minute" value="{{ form_values.transitTime.split(':')[1] if form_values.transitTime else '' }}" placeholder="ММ">
+                      </label>
+                      <span class="segmented-separator" aria-hidden="true">:</span>
+                      <label class="segmented-part">
+                        <span>Секунди</span>
+                        <input type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-part="second" value="{{ form_values.transitTime.split(':')[2] if form_values.transitTime else '' }}" placeholder="СС">
+                      </label>
+                    </div>
+                    <input type="hidden" name="transitTime" id="transitTime" value="{{ form_values.transitTime }}">
+                  </div>
                 </div>
 
                 <p class="helper-text helper-text--small">По подразбиране е зададен текущият момент, за да можеш да построиш транзит веднага без грешка.</p>
@@ -281,7 +345,7 @@
               <p class="helper-text">Ayanamsha: Lahiri. При спорни исторически моменти около DST можеш да коригираш часовата зона ръчно.</p>
               <div class="form-actions">
                 <button type="submit" name="buildMode" value="natal" class="{% if build_mode != 'transit' %}is-active{% endif %}">Построй рождена карта</button>
-                <button type="submit" name="buildMode" value="transit" class="button-secondary {% if build_mode == 'transit' %}is-active{% endif %}">Построй транзитите</button>
+                <button type="submit" name="buildMode" value="transit" formaction="{{ url_for('index') }}#transitCard" class="button-secondary {% if build_mode == 'transit' %}is-active{% endif %}">Построй транзитите</button>
               </div>
               <p class="helper-text helper-text--small">Транзитната карта се изчислява само когато изрично натиснеш бутона за транзитите.</p>
             </div>
@@ -555,7 +619,7 @@
                   <script type="application/json" class="chart-payload">{{ results.d1_chart_data | tojson }}</script>
                   <div class="chart-frame chart-frame--zoomable chart-frame--rotatable" data-chart-title="D-1 (Рождена Раши)" tabindex="0" role="button" aria-label="Увеличи D-1 (Рождена Раши)">{{ results.d1_chart_svg | safe }}</div>
                 </article>
-                <article class="chart-card" data-chart-style-group="transit">
+                <article class="chart-card" id="transitResult" data-chart-style-group="transit">
                   <div class="chart-header">
                     <h3>D-1 (Транзити)</h3>
                     <p>Транзитната Раши карта е отделена за директно ръчно сравнение с рождената.</p>
