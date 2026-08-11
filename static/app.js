@@ -766,6 +766,110 @@ function bindTableScrollAssist() {
   });
 }
 
+function bindSegmentedDateTimeControls() {
+  const controls = document.querySelectorAll("[data-segmented-date], [data-segmented-time]");
+
+  controls.forEach((control) => {
+    const target = document.getElementById(control.dataset.target);
+    const inputs = Array.from(control.querySelectorAll("input[data-part]"));
+    const isDate = control.hasAttribute("data-segmented-date");
+
+    if (!target || inputs.length === 0) {
+      return;
+    }
+
+    const validateInput = (input) => {
+      const value = input.value.trim();
+      const ranges = {
+        day: [1, 31, "Денят трябва да бъде между 1 и 31."],
+        month: [1, 12, "Месецът трябва да бъде между 1 и 12."],
+        hour: [0, 23, "Часът трябва да бъде между 0 и 23."],
+        minute: [0, 59, "Минутите трябва да бъдат между 0 и 59."],
+        second: [0, 59, "Секундите трябва да бъдат между 0 и 59."],
+      };
+
+      input.setCustomValidity("");
+      if (!value || !ranges[input.dataset.part]) {
+        return;
+      }
+
+      const [minimum, maximum, message] = ranges[input.dataset.part];
+      const numericValue = Number(value);
+      if (numericValue < minimum || numericValue > maximum) {
+        input.setCustomValidity(message);
+      }
+    };
+
+    const syncTarget = () => {
+      const values = Object.fromEntries(inputs.map((input) => [input.dataset.part, input.value.trim()]));
+      const allFilled = inputs.every((input) => input.value.trim() !== "");
+
+      if (!allFilled) {
+        target.value = "";
+        return;
+      }
+
+      if (isDate) {
+        const year = values.year.padStart(4, "0");
+        target.value = `${year}-${values.month.padStart(2, "0")}-${values.day.padStart(2, "0")}`;
+      } else {
+        target.value = `${values.hour.padStart(2, "0")}:${values.minute.padStart(2, "0")}:${values.second.padStart(2, "0")}`;
+      }
+    };
+
+    inputs.forEach((input, index) => {
+      input.addEventListener("input", () => {
+        input.value = input.value.replace(/\D/g, "");
+        validateInput(input);
+        syncTarget();
+
+        if (input.maxLength > 0 && input.value.length >= input.maxLength && inputs[index + 1]) {
+          inputs[index + 1].focus();
+          inputs[index + 1].select();
+        }
+      });
+
+      input.addEventListener("blur", () => {
+        if (input.value && input.dataset.part !== "year") {
+          input.value = input.value.padStart(2, "0");
+        }
+        validateInput(input);
+        syncTarget();
+      });
+    });
+
+    syncTarget();
+  });
+
+  document.getElementById("birthForm")?.addEventListener("submit", () => {
+    controls.forEach((control) => {
+      control.querySelector("input[data-part]")?.dispatchEvent(new Event("blur"));
+    });
+  });
+}
+
+function keepTransitFormInView() {
+  const form = document.getElementById("birthForm");
+  const transitCard = document.getElementById("transitCard");
+
+  if (!form || !transitCard || form.dataset.buildMode !== "transit") {
+    return;
+  }
+
+  transitCard.open = true;
+  const target = document.getElementById("transitResult") || transitCard;
+  const scrollToTransit = () => {
+    const top = window.scrollY + target.getBoundingClientRect().top - 40;
+    window.scrollTo({ top, behavior: "instant" });
+  };
+  requestAnimationFrame(scrollToTransit);
+  setTimeout(scrollToTransit, 0);
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(scrollToTransit);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const syncNatalCity = bindCitySync({
     citySelectId: "cityName",
@@ -824,8 +928,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   bindTimezoneMode("timezoneMode", "manualTimezoneFields");
   bindTimezoneMode("transitTimezoneMode", "transitManualTimezoneFields");
+  bindSegmentedDateTimeControls();
   bindTableScrollAssist();
   bindChartRotation();
   bindDivisionalChartSelector();
   bindChartLightbox();
+  keepTransitFormInView();
 });

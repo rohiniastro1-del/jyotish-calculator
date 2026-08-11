@@ -431,6 +431,11 @@ body::after {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.field-grid.two.date-time-grid {
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  gap: 10px;
+}
+
 .field-grid.three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -445,6 +450,104 @@ body::after {
   font-size: 0.8rem;
   letter-spacing: 0.01em;
   color: var(--muted);
+}
+
+.segmented-field {
+  min-width: 0;
+}
+
+.segmented-field__title {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-weight: 700;
+  letter-spacing: 0.055em !important;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #896a2d !important;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) auto minmax(0, 0.9fr) auto minmax(0, 1.18fr);
+  align-items: center;
+  gap: 0;
+  padding: 0 7px;
+  border: 1px solid rgba(76, 97, 66, 0.18);
+  border-radius: 15px;
+  background: rgba(255, 254, 249, 0.96);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.segmented-control:hover {
+  border-color: rgba(76, 97, 66, 0.28);
+}
+
+.segmented-control:focus-within {
+  border-color: rgba(76, 97, 66, 0.42);
+  box-shadow: 0 0 0 4px rgba(69, 105, 65, 0.12);
+  transform: translateY(-1px);
+}
+
+.segmented-control--time {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.segmented-part {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0;
+}
+
+.segmented-part > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.segmented-part input {
+  min-width: 0;
+  height: 44px;
+  padding: 5px 3px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.segmented-part input:hover,
+.segmented-part input:focus {
+  border: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.segmented-part input::placeholder {
+  color: rgba(87, 87, 76, 0.4);
+}
+
+.segmented-separator {
+  display: block;
+  align-self: center;
+  width: 1px;
+  height: 25px;
+  margin: 0 3px;
+  padding: 0;
+  overflow: hidden;
+  background: rgba(104, 111, 102, 0.28);
+  color: transparent !important;
+  font-size: 0 !important;
 }
 
 input,
@@ -568,6 +671,11 @@ button.button-secondary:hover {
 .transit-card {
   padding: 0;
   overflow: hidden;
+  scroll-margin-top: 16px;
+}
+
+#transitResult {
+  scroll-margin-top: 16px;
 }
 
 .transit-card__summary {
@@ -1995,6 +2103,35 @@ tbody th {
 
   .quality-bar span {
     min-height: 0;
+  }
+
+  .date-time-grid {
+    gap: 18px;
+  }
+
+  .segmented-control {
+    gap: 0;
+    padding: 0 7px;
+    border: 1px solid rgba(76, 97, 66, 0.18);
+    border-radius: 15px;
+    background: rgba(255, 254, 249, 0.96);
+    grid-template-columns: minmax(0, 0.78fr) auto minmax(0, 0.9fr) auto minmax(0, 1.18fr);
+  }
+
+  .segmented-control--time {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .segmented-part input {
+    height: 44px;
+    padding-inline: 3px;
+    font-size: 0.98rem;
+  }
+
+  .segmented-separator {
+    height: 25px;
+    margin-inline: 3px;
+    padding: 0;
   }
 
   .chart-content {
