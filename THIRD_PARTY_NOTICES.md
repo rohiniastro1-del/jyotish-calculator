@@ -1,82 +1,55 @@
-# Third-Party Notices
+# THIRD-PARTY NOTICES
 
-Rohini Astro / Jyotish Calculator is distributed under the GNU Affero General Public License v3.0 (AGPL-3.0).  
-See the repository `LICENSE` file for the full license text.
-
-This file records third-party software and data used by the project.
-
----
+This project incorporates and/or depends upon third-party software and data that remain subject to their respective copyright notices and license terms.
 
 ## Swiss Ephemeris
 
-This project uses **Swiss Ephemeris** for astronomical calculations and includes Swiss Ephemeris data files in the `ephe/` directory, including:
+Swiss Ephemeris  
+Copyright © Astrodienst AG, Switzerland.
 
-- `seas_18.se1`
-- `semo_18.se1`
-- `sepl_18.se1`
+Authors: Dieter Koch and Alois Treindl.
 
-Swiss Ephemeris is developed by **Astrodienst AG**.
+Swiss Ephemeris is made available under a dual licensing model consisting of:
 
-Authors of the Swiss Ephemeris: **Dieter Koch and Alois Treindl**.
+1. GNU Affero General Public License (AGPL); or
+2. Swiss Ephemeris Professional License.
 
-Swiss Ephemeris is distributed under a dual licensing model:
+This project uses Swiss Ephemeris under the GNU Affero General Public License.
 
-- GNU Affero General Public License (AGPL), or
-- Swiss Ephemeris Professional License.
+All applicable Swiss Ephemeris copyright notices and license notices must be preserved.
 
-This project uses Swiss Ephemeris under the **GNU AGPL** licensing option.
-
-Official licensing information:
-
-https://www.astro.com/swisseph/swephinfo_e.htm
-
-The copyright and license notices of Swiss Ephemeris must be preserved.  
-The names of the Swiss Ephemeris authors and Astrodienst are included here only for license/copyright attribution and do not imply endorsement of Rohini Astro or this project.
-
----
+Official licensing information:  
+https://www.astro.com/swisseph/sweph_e.htm
 
 ## pyswisseph
 
-The project depends on:
+This project depends on:
 
 `pyswisseph==2.10.3.2`
 
-**pyswisseph** is the Python extension to Swiss Ephemeris and is distributed under the **GNU Affero General Public License v3.0**.
+pyswisseph is a Python extension to Swiss Ephemeris and is licensed under the GNU Affero General Public License version 3.
 
-Upstream source and license:
-
+Upstream source and license information:  
 https://github.com/astrorigin/pyswisseph
-
----
 
 ## GeoNames
 
-Location data used by this project includes data from **GeoNames**.
+To the extent that this project includes or uses GeoNames geographical data or services, such data and services are subject to the Creative Commons Attribution 4.0 International License (CC BY 4.0).
 
-GeoNames data is made available under a **Creative Commons Attribution (CC BY)** license and requires attribution.
+Attribution: GeoNames.
 
-GeoNames:
+License:  
+https://creativecommons.org/licenses/by/4.0/
 
-https://www.geonames.org/
-
-GeoNames data / licensing information:
-
+Source and licensing information:  
 https://www.geonames.org/export/
 
-GeoNames data is provided “as is”, without warranty as to accuracy, timeliness, or completeness.
+## Project License
 
----
+The source code of this project is distributed under the GNU Affero General Public License version 3.
 
-## No endorsement
+See the `LICENSE` file included with the source code for the complete license terms.
 
-References to third-party projects, authors, organizations, trademarks, or services in this file are provided only for license compliance and attribution. They do not imply sponsorship, endorsement, or affiliation with Rohini Astro.
+## No Endorsement
 
----
-
-## Rohini Astro
-
-Project: **Rohini Astro**
-
-For the license governing this project itself, see:
-
-`LICENSE`
+The identification of third-party copyright holders, authors, projects, products, or services in this notice is made solely for copyright, licensing, and attribution purposes and does not imply sponsorship, endorsement, or affiliation.
