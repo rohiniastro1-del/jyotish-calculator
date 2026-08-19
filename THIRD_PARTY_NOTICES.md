@@ -8,7 +8,7 @@ This notice identifies direct third-party software and data used by the project.
 
 The project uses Swiss Ephemeris under the GNU Affero General Public License licensing option.
 
-See `SWISS-EPHEMERIS-NOTICE.txt`.
+See `See SWISS-EPHEMERIS-LICENSE.txt`.
 
 The upstream Swiss Ephemeris copyright and license notice must be preserved in distributions that include Swiss Ephemeris code or data.
 
